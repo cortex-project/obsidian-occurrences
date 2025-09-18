@@ -1,7 +1,9 @@
-import { Plugin } from "obsidian"
+import { Plugin, WorkspaceLeaf } from "obsidian"
+import { OCCURRENCES_VIEW, OccurrencesView } from "./objectView"
+import { OccurrenceStore } from "./occurrenceStore"
 
 export default class OccurrencesPlugin extends Plugin {
-  // occurrenceStore: OccurrenceStore
+  occurrenceStore: OccurrenceStore
   // settings: SettingsStore
 
   async onload() {
@@ -9,31 +11,28 @@ export default class OccurrencesPlugin extends Plugin {
     // await this.settings.loadSettings()
     // this.addSettingTab(new CortexSettingsTab(this.app, this))
 
-    // this.occurrenceStore = new OccurrenceStore(this.app)
-    // this.app.workspace.onLayoutReady(() => {
-    //   this.occurrenceStore.load()
-    // })
+    this.occurrenceStore = new OccurrenceStore(this.app)
 
-    // Add ribbon icon
+    this.app.workspace.onLayoutReady(() => {
+      this.occurrenceStore.load()
+    })
+
     this.addRibbonIcon(
-      "calendar-clock",
+      "calendar-range",
       "Open Occurrences View",
       (evt: MouseEvent) => {
-        // TODO: Open Occurrences View
-        console.log("Open Occurrences View")
+        this.openView()
       }
     )
+    // Register View
+    this.registerView(OCCURRENCES_VIEW, leaf => new OccurrencesView(leaf, this))
 
-    // Register views
-    // this.registerView(OCCURRENCES_VIEW, leaf => new OccurrencesView(leaf, this))
-
-    // Open Occurrences Explorer
+    // Add Commands
     this.addCommand({
       id: "open-occurrences-view",
       name: "Open Occurrences View",
       callback: () => {
-        // TODO: Open Occurrences View
-        console.log("Open Occurrences View")
+        this.openView()
       },
     })
 
@@ -58,14 +57,41 @@ export default class OccurrencesPlugin extends Plugin {
       },
     })
 
-    // Register protocol handler for add-intent
     // TODO: Update mobile app to use add-occurrence
     this.registerObsidianProtocolHandler("add-occurrence", params => {
-      // Open the intent modal
       // new OccurrenceModal(this, params as Partial<OccurrenceObject>, file => {
       //   this.app.workspace.openLinkText(file.path, "", false)
       // }).open()
     })
+  }
+
+  private async openView(): Promise<void> {
+    const { workspace } = this.app
+
+    let leaf: WorkspaceLeaf | null = null
+    const leaves = workspace.getLeavesOfType(OCCURRENCES_VIEW)
+
+    if (leaves.length > 0) {
+      // A leaf with our view already exists, use that
+      leaf = leaves[0]
+    } else {
+      // Try to get an existing leaf or create a new one
+      leaf = workspace.getRightLeaf(false)
+      if (leaf) {
+        await leaf.setViewState({ type: OCCURRENCES_VIEW, active: true })
+      }
+    }
+
+    if (leaf !== null) {
+      // Ensure the sidebar is expanded
+      workspace.rightSplit.expand()
+
+      // Reveal the leaf
+      workspace.revealLeaf(leaf)
+
+      // Brief timeout to allow UI to update
+      await new Promise(resolve => setTimeout(resolve, 50))
+    }
   }
 
   onunload() {}

@@ -1,0 +1,53 @@
+// TODO: Refactor for just Occurrences
+
+import { TFile } from "obsidian"
+
+// Common types used across multiple entity types
+export interface ObsidianLink {
+  type: "wiki" | "markdown" | "uri"
+  target: string // The referenced file/page
+  displayText?: string // Optional display text
+  alias?: string // The alias part in wikilinks (after the pipe)
+  section?: string // For links to a specific section like [[Page#Section]]
+  vault?: string // For URI links
+}
+
+export interface ObjectProperties {
+  types?: string[]
+  tags?: string[]
+}
+
+export interface CortexObject {
+  path: string
+  file: TFile
+  title: string
+  properties: ObjectProperties
+}
+
+export interface OccurrenceProperties extends ObjectProperties {
+  occurredAt: Date
+  toProcess: boolean
+  participants: ObsidianLink[]
+  intents: ObsidianLink[]
+  location: ObsidianLink | null
+}
+
+export interface OccurrenceObject extends CortexObject {
+  class: "Occurrence"
+  properties: OccurrenceProperties
+}
+
+// ======== SHARED CONSTANTS ========
+// TODO: Make this a configurable option
+export const OCCURRENCE_DATE_FORMAT = "YYYY-MM-DD HHmm" as const
+
+// ======== TYPE GUARDS ========
+
+export function isOccurrenceObject(obj: any): obj is OccurrenceObject {
+  return (
+    obj &&
+    obj.class === "Occurrence" &&
+    obj.properties &&
+    obj.properties.occurredAt
+  )
+}
