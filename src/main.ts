@@ -1,6 +1,6 @@
 import { Plugin, WorkspaceLeaf } from "obsidian"
-import { OCCURRENCES_VIEW, OccurrencesView } from "./objectView"
 import { OccurrenceStore } from "./occurrenceStore"
+import { OCCURRENCES_VIEW, OccurrencesView } from "./occurrencesView"
 
 export default class OccurrencesPlugin extends Plugin {
   occurrenceStore: OccurrenceStore

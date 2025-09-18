@@ -1,6 +1,6 @@
 import CoretexPlugin from "@/main"
 import { ItemView, TFile, WorkspaceLeaf } from "obsidian"
-import { ObjectOccurrences } from "./objectOccurrences"
+import { OccurrenceList } from "./occurrenceList"
 
 export const OCCURRENCES_VIEW = "occurrences-view"
 
@@ -11,12 +11,10 @@ export class OccurrencesView extends ItemView {
   public contentEl: HTMLElement
 
   // Child components
-  private objectOccurrences: ObjectOccurrences
+  private occurrenceList: OccurrenceList
 
   // State
   private currentFile: TFile | null = null
-  // private currentObject: EntityObject | IntentObject | OccurrenceObject | null =
-  //   null
 
   constructor(leaf: WorkspaceLeaf, plugin: CoretexPlugin) {
     super(leaf)
@@ -51,15 +49,21 @@ export class OccurrencesView extends ItemView {
       cls: "view-content",
     })
 
-    // Create object occurrences element
+    // Create occurrence list element
     const occurrencesContainer = this.contentEl.createEl("div", {
       cls: "view-content-container",
     })
-    this.objectOccurrences = new ObjectOccurrences(
+    this.occurrenceList = new OccurrenceList(
       this.plugin,
-      occurrencesContainer
+      occurrencesContainer,
+      {
+        listItemOptions: {
+          showDate: true,
+        },
+        groupBy: "month",
+      }
     )
-    this.addChild(this.objectOccurrences)
+    this.addChild(this.occurrenceList)
 
     this.registerEvents()
 
@@ -104,7 +108,68 @@ export class OccurrencesView extends ItemView {
 
     this.currentFile = activeFile
 
-    this.objectOccurrences.update(activeFile)
+    this.updateOccurrences(activeFile)
+  }
+
+  /**
+   * Update the occurrences display for a given file
+   * @param file - The file to find inbound occurrence links for
+   */
+  private updateOccurrences(file: TFile): void {
+    // Clear existing occurrences
+    this.occurrenceList.empty()
+
+    // Get all inbound links to this file
+    const inboundLinks = this.getInboundLinks(file.path)
+    // TODO: Modify so that items are added to the list as they are found rather
+    // than after all links are found
+
+    if (inboundLinks.length === 0) {
+      this.renderNoOccurrences()
+      return
+    }
+
+    // Add occurrences for each inbound link
+    for (const linkPath of inboundLinks) {
+      const occurrence = this.plugin.occurrenceStore.get(linkPath)
+      if (occurrence) {
+        this.occurrenceList.addItem(occurrence)
+      }
+      // Silently skip if occurrence doesn't exist
+    }
+  }
+
+  /**
+   * Get all file paths that link to the given file path
+   * @param targetPath - The file path to find inbound links for
+   * @returns Array of file paths that link to the target
+   */
+  private getInboundLinks(targetPath: string): string[] {
+    const inboundLinks: string[] = []
+
+    // Iterate over all resolved links to find those pointing to our target
+    const resolvedLinks = this.plugin.app.metadataCache.resolvedLinks
+    for (const sourcePath in resolvedLinks) {
+      const links = resolvedLinks[sourcePath]
+      if (links[targetPath]) {
+        inboundLinks.push(sourcePath)
+      }
+    }
+
+    return inboundLinks
+  }
+
+  /**
+   * Render the "no occurrences" message
+   */
+  private renderNoOccurrences(): void {
+    this.contentEl.empty()
+    this.contentEl.addClass("cortex-occurrence-list")
+
+    const noOccurrencesEl = this.contentEl.createEl("div", {
+      cls: "cortex-no-occurrences",
+      text: "Not referenced in any occurrences",
+    })
   }
 
   async onClose(): Promise<void> {
