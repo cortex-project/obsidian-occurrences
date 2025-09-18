@@ -1,21 +1,22 @@
 import CoretexPlugin from "@/main"
-import { ObjectListItem } from "./objectListItem"
-// import { OccurrenceModal } from "./occurrenceModal"
 import { OccurrenceStore } from "@/occurrenceStore"
 import { OccurrenceObject } from "@/types"
-import { Menu } from "obsidian"
+import { App, Menu, TFile, setTooltip } from "obsidian"
+import { ListItem } from "./listItem"
 
 export interface OccurrenceListItemOptions {
   showProcessIcon?: boolean
   showDate?: boolean
   showTime?: boolean
 }
-export class OccurrenceListItem extends ObjectListItem {
+
+export class OccurrenceListItem extends ListItem<OccurrenceObject> {
   private plugin: CoretexPlugin
   private occurrenceStore: OccurrenceStore
   private occurrence: OccurrenceObject
   private menu: Menu
   private options: OccurrenceListItemOptions
+  private app: App
 
   constructor(
     occurrence: OccurrenceObject,
@@ -23,25 +24,15 @@ export class OccurrenceListItem extends ObjectListItem {
     plugin: CoretexPlugin,
     options?: OccurrenceListItemOptions
   ) {
-    // Temporary adapter for Occurrence to CortexObject during Entity-only migration
-    const adaptedOccurrence = {
-      path: occurrence.file.path,
-      file: occurrence.file,
-      title: occurrence.title,
-      class: "Occurrence" as const,
-      properties: {
-        tags: occurrence.properties.tags,
-        occurredAt: occurrence.properties.occurredAt,
-        toProcess: occurrence.properties.toProcess,
-        participants: occurrence.properties.participants,
-        intents: occurrence.properties.intents,
-        location: occurrence.properties.location,
-      },
-    }
+    // Call parent constructor with the occurrence and display text
+    super(containerEl, occurrence, occurrence.title, file =>
+      plugin.app.workspace.openLinkText(file.file.path, "", false)
+    )
 
-    super(containerEl, adaptedOccurrence, plugin.app, file => {
-      plugin.app.workspace.openLinkText(file.path, "", false)
-    })
+    this.app = plugin.app
+    this.plugin = plugin
+    this.occurrenceStore = plugin.occurrenceStore
+    this.occurrence = occurrence
 
     // Set default options
     this.options = {
@@ -51,13 +42,50 @@ export class OccurrenceListItem extends ObjectListItem {
       ...options,
     }
 
-    this.plugin = plugin
-    this.occurrenceStore = plugin.occurrenceStore
-    this.occurrence = occurrence
+    // Add tooltip using Obsidian's native approach
+    setTooltip(this.getContainerEl(), occurrence.title)
+
+    // Add file-specific event handlers
+    this.setupFileHandlers()
 
     // Render the occurrence-specific content now that occurrence is set
     this.render()
   }
+
+  /**
+   * Setup file-specific event handlers
+   */
+  private setupFileHandlers(): void {
+    const containerEl = this.getContainerEl()
+
+    // Remove the default click handler and add our own
+    containerEl.removeEventListener("click", this.handleClick)
+
+    // Open file on click using Obsidian's native link handling
+    containerEl.addEventListener("click", (event: MouseEvent) => {
+      // Prevent default to avoid any unwanted behavior
+      event.preventDefault()
+
+      // Default behavior: open the file
+      this.app.workspace.openLinkText(this.occurrence.file.path, "", false)
+    })
+
+    // Add hover preview functionality
+    containerEl.addEventListener("mouseover", (event: MouseEvent) => {
+      this.app.workspace.trigger("hover-link", {
+        event: event,
+        source: "file-explorer",
+        hoverParent: containerEl,
+        targetEl: containerEl,
+        linktext: this.occurrence.file.path,
+      })
+    })
+  }
+
+  /**
+   * Dummy click handler for removal
+   */
+  private handleClick = () => {}
 
   private configureMenu() {
     // Open file option
@@ -192,6 +220,48 @@ export class OccurrenceListItem extends ObjectListItem {
   }
 
   public getOccurrence(): OccurrenceObject {
+    return this.occurrence
+  }
+
+  /**
+   * Add a button with file-specific callback signature
+   */
+  public addFileButton(
+    icon: string,
+    tooltip: string,
+    onClick: (file: TFile, event: MouseEvent) => void
+  ): this {
+    // Use the parent's addButton but adapt the callback
+    super.addButton(
+      icon,
+      tooltip,
+      (occurrence: OccurrenceObject, event: MouseEvent) => {
+        onClick(occurrence.file, event)
+      }
+    )
+    return this
+  }
+
+  /**
+   * Check if this list item represents the given file
+   */
+  public isForFile(file: TFile): boolean {
+    return this.occurrence.file.path === file.path
+  }
+
+  /**
+   * Get the file associated with this list item
+   * @returns The file
+   */
+  public getFile(): TFile {
+    return this.occurrence.file
+  }
+
+  /**
+   * Get the OccurrenceObject associated with this list item
+   * @returns The OccurrenceObject
+   */
+  public getFileItem(): OccurrenceObject {
     return this.occurrence
   }
 }

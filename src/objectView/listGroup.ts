@@ -1,10 +1,10 @@
 import { App, Component, setIcon, setTooltip } from "obsidian"
-import { ObjectListItem } from "./objectListItem"
+import { OccurrenceListItem } from "./occurrenceListItem"
 
 export class ListGroup extends Component {
   private app: App
   private isCollapsed: boolean
-  private listItems: ObjectListItem[] = []
+  private listItems: OccurrenceListItem[] = []
   private itemContainer: HTMLElement
   private headerContainer: HTMLElement
   private iconContainer: HTMLElement
@@ -108,7 +108,7 @@ export class ListGroup extends Component {
   /**
    * Add a list item to the group
    */
-  public addListItem(item: ObjectListItem): this {
+  public addListItem(item: OccurrenceListItem): this {
     this.listItems.push(item)
     this.itemContainer.appendChild(item.getContainerEl())
     this.updateCount()
@@ -118,7 +118,7 @@ export class ListGroup extends Component {
   /**
    * Insert a list item at a specific position in the group
    */
-  public insertListItemAt(item: ObjectListItem, index: number): this {
+  public insertListItemAt(item: OccurrenceListItem, index: number): this {
     this.listItems.splice(index, 0, item)
 
     // Insert the DOM element at the correct position
@@ -144,7 +144,7 @@ export class ListGroup extends Component {
   /**
    * Remove a list item from the group
    */
-  public removeListItem(item: ObjectListItem): this {
+  public removeListItem(item: OccurrenceListItem): this {
     const index = this.listItems.indexOf(item)
     if (index > -1) {
       this.listItems.splice(index, 1)
@@ -227,7 +227,7 @@ export class ListGroup extends Component {
   /**
    * Get all list items
    */
-  public getListItems(): ObjectListItem[] {
+  public getListItems(): OccurrenceListItem[] {
     return this.listItems
   }
 

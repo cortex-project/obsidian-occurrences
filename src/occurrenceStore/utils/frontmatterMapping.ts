@@ -1,4 +1,4 @@
-import { CortexObject } from "@/types"
+import { OccurrenceObject } from "@/types"
 import { TFile } from "obsidian"
 import { toISOStringWithTimezone } from "./dateUtils"
 
@@ -6,18 +6,7 @@ import { toISOStringWithTimezone } from "./dateUtils"
  * Configuration for mapping interface properties to frontmatter field names
  * This eliminates the need for hardcoded exclusions and makes the mapping explicit
  */
-export const ENTITY_FRONTMATTER_MAPPING = {
-  types: "types",
-  tags: "tags",
-} as const
-
-export const INTENT_FRONTMATTER_MAPPING = {
-  status: "intent_status",
-  parents: "intent_parents",
-  relevantTo: "intent_relevant_to",
-  tags: "tags",
-} as const
-
+// TODO Settings: Allow user to customize the occurrence frontmatter mapping
 export const OCCURRENCE_FRONTMATTER_MAPPING = {
   occurredAt: "occurrence_occurred_at",
   toProcess: "occurrence_to_process",
@@ -31,7 +20,7 @@ export const OCCURRENCE_FRONTMATTER_MAPPING = {
  * Interface properties that should never be stored in frontmatter
  * These are computed or runtime-only properties
  */
-export const INTERFACE_ONLY_PROPERTIES = new Set<keyof CortexObject>([
+export const INTERFACE_ONLY_PROPERTIES = new Set<keyof OccurrenceObject>([
   "file",
   "title",
 ])
@@ -84,7 +73,7 @@ function transformValueForFrontmatter(key: string, value: any): any {
 /**
  * Generic function to apply frontmatter updates using a property mapping
  */
-export function applyFrontmatterUpdates<T extends CortexObject>(
+export function applyFrontmatterUpdates<T extends OccurrenceObject>(
   frontmatter: any,
   updates: Partial<T>,
   propertyMapping: Record<string, string>
@@ -122,7 +111,7 @@ export function applyFrontmatterUpdates<T extends CortexObject>(
 
   for (const [key, value] of Object.entries(updates)) {
     const isInterfaceOnlyProperty = INTERFACE_ONLY_PROPERTIES.has(
-      key as keyof CortexObject
+      key as keyof OccurrenceObject
     )
     const isComputedProperty = COMPUTED_PROPERTIES.has(key)
     const isAlreadyMappedProperty = mappedInterfaceProperties.has(key)
@@ -153,7 +142,7 @@ export function applyFrontmatterUpdates<T extends CortexObject>(
 /**
  * Generic function to parse frontmatter using a property mapping
  */
-export function parseFrontmatterToObject<T extends CortexObject>(
+export function parseFrontmatterToObject<T extends OccurrenceObject>(
   frontmatter: any,
   file: TFile,
   propertyMapping: Record<string, string>
@@ -184,7 +173,7 @@ export function shouldExcludeFromFrontmatter(
   propertyMapping: Record<string, string>
 ): boolean {
   const isInterfaceOnlyProperty = INTERFACE_ONLY_PROPERTIES.has(
-    propertyKey as keyof CortexObject
+    propertyKey as keyof OccurrenceObject
   )
   const isComputedProperty = COMPUTED_PROPERTIES.has(propertyKey)
   const isMappedProperty = Object.keys(propertyMapping).includes(propertyKey)

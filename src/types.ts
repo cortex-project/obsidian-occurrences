@@ -17,13 +17,6 @@ export interface ObjectProperties {
   tags?: string[]
 }
 
-export interface CortexObject {
-  path: string
-  file: TFile
-  title: string
-  properties: ObjectProperties
-}
-
 export interface OccurrenceProperties extends ObjectProperties {
   occurredAt: Date
   toProcess: boolean
@@ -32,7 +25,10 @@ export interface OccurrenceProperties extends ObjectProperties {
   location: ObsidianLink | null
 }
 
-export interface OccurrenceObject extends CortexObject {
+export interface OccurrenceObject {
+  path: string
+  file: TFile
+  title: string
   class: "Occurrence"
   properties: OccurrenceProperties
 }
