@@ -1,7 +1,7 @@
+import { ListGroup } from "@/components"
 import OccurrencesPlugin from "@/main"
 import { OccurrenceObject } from "@/types"
 import { Component } from "obsidian"
-import { ListGroup } from "./listGroup"
 import {
   OccurrenceListItem,
   OccurrenceListItemOptions,

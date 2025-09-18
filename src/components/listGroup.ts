@@ -1,5 +1,5 @@
 import { App, Component, setIcon, setTooltip } from "obsidian"
-import { OccurrenceListItem } from "./occurrenceListItem"
+import { OccurrenceListItem } from "../objectView/occurrenceListItem"
 
 export class ListGroup extends Component {
   private app: App

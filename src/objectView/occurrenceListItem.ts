@@ -1,8 +1,8 @@
+import { ListItem } from "@/components"
 import CoretexPlugin from "@/main"
 import { OccurrenceStore } from "@/occurrenceStore"
 import { OccurrenceObject } from "@/types"
 import { App, Menu, TFile, setTooltip } from "obsidian"
-import { ListItem } from "./listItem"
 
 export interface OccurrenceListItemOptions {
   showProcessIcon?: boolean
