@@ -1,0 +1,91 @@
+/* ========================================
+   LIST GROUP COMPONENTS
+======================================== */
+
+.list-item {
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.list-item:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.list-item a {
+  display: block;
+  text-decoration: none;
+}
+
+/* ========================================
+    LIST ITEM COMPONENTS
+======================================== */
+
+.list-item {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 8px;
+}
+
+.list-item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.list-item-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+.list-item svg {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+.list-item .icon-sm svg {
+  width: 0.9em;
+  height: 0.9em;
+}
+
+.list-item-right-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.list-item-text-right {
+  font-size: 0.85em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.list-item-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.list-item-button {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.list-item-button:hover {
+  color: var(--text-normal);
+  background-color: var(--background-modifier-hover);
+}
+
+.list-item-description {
+  font-size: 0.85em;
+  color: var(--text-muted);
+  margin-top: 2px;
+  margin-left: 2px;
+  width: 100%;
+}

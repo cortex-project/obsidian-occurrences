@@ -1,0 +1,20 @@
+.occurrences-view-container {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.occurrences-view-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 2px solid var(--background-modifier-border);
+}
+
+.occurrences-view-content {
+  overflow-y: auto;
+  flex-grow: 1;
+  padding-top: 8px;
+}

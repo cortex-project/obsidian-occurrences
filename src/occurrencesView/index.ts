@@ -42,20 +42,22 @@ export class OccurrencesView extends ItemView {
 
     // Create header element
     this.headerEl = container.createEl("div", {
-      cls: "view-header",
+      cls: "occurrences-view-header",
     })
 
     // Create content element
     this.contentEl = container.createEl("div", {
+      cls: "occurrences-view-content",
+    })
 
     this.noOccurrencesEl = this.contentEl.createEl("div", {
-      cls: "cortex-no-occurrences",
+      cls: "occurrences-no-occurrences",
       text: "Not referenced in any occurrences",
     })
 
     // Create occurrence list element
     const occurrencesContainer = this.contentEl.createEl("div", {
-      cls: "view-content-container",
+      cls: "occurrences-view-content-container",
     })
     this.occurrenceList = new OccurrenceList(
       this.plugin,
