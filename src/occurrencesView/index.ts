@@ -12,6 +12,7 @@ export class OccurrencesView extends ItemView {
 
   // Child components
   private occurrenceList: OccurrenceList
+  private noOccurrencesEl: HTMLElement
 
   // State
   private currentFile: TFile | null = null
@@ -46,7 +47,10 @@ export class OccurrencesView extends ItemView {
 
     // Create content element
     this.contentEl = container.createEl("div", {
-      cls: "view-content",
+
+    this.noOccurrencesEl = this.contentEl.createEl("div", {
+      cls: "cortex-no-occurrences",
+      text: "Not referenced in any occurrences",
     })
 
     // Create occurrence list element
@@ -118,6 +122,7 @@ export class OccurrencesView extends ItemView {
   private updateOccurrences(file: TFile): void {
     // Clear existing occurrences
     this.occurrenceList.empty()
+    this.noOccurrencesEl.hide()
 
     // Get all inbound links to this file
     const inboundLinks = this.getInboundLinks(file.path)
@@ -125,7 +130,7 @@ export class OccurrencesView extends ItemView {
     // than after all links are found
 
     if (inboundLinks.length === 0) {
-      this.renderNoOccurrences()
+      this.noOccurrencesEl.show()
       return
     }
 
@@ -157,19 +162,6 @@ export class OccurrencesView extends ItemView {
     }
 
     return inboundLinks
-  }
-
-  /**
-   * Render the "no occurrences" message
-   */
-  private renderNoOccurrences(): void {
-    this.contentEl.empty()
-    this.contentEl.addClass("cortex-occurrence-list")
-
-    const noOccurrencesEl = this.contentEl.createEl("div", {
-      cls: "cortex-no-occurrences",
-      text: "Not referenced in any occurrences",
-    })
   }
 
   async onClose(): Promise<void> {
