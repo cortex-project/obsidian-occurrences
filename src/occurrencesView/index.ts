@@ -1,21 +1,23 @@
 import CoretexPlugin from "@/main"
-import { ItemView, TFile, WorkspaceLeaf } from "obsidian"
-import { OccurrenceList } from "./occurrenceList"
+import { ItemView, WorkspaceLeaf } from "obsidian"
+import { CurrentFileTab } from "./currentFileTab"
+import { Header } from "./header"
 
 export const OCCURRENCES_VIEW = "occurrences-view"
 
 export class OccurrencesView extends ItemView {
   private plugin: CoretexPlugin
   // UI elements
-  private headerEl: HTMLElement
   public contentEl: HTMLElement
 
   // Child components
-  private occurrenceList: OccurrenceList
-  private noOccurrencesEl: HTMLElement
+  private header: Header
+  private currentFileTab: CurrentFileTab
+  // private searchTab: SearchTab
+  // private inboxTab: InboxTab
 
   // State
-  private currentFile: TFile | null = null
+  private currentView: "search" | "current-file" | "inbox"
 
   constructor(leaf: WorkspaceLeaf, plugin: CoretexPlugin) {
     super(leaf)
@@ -32,138 +34,49 @@ export class OccurrencesView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "Occurrences View"
+    return "Occurrences"
   }
 
   async onOpen(): Promise<void> {
     const container = this.containerEl.children[1]
     container.empty()
-    container.addClass("view-container")
+    container.addClass("occurrences-view-container")
 
     // Create header element
-    this.headerEl = container.createEl("div", {
-      cls: "occurrences-view-header",
-    })
+    this.header = new Header(container as HTMLElement, tab =>
+      this.handleTabChange(tab)
+    )
+    this.addChild(this.header)
 
     // Create content element
     this.contentEl = container.createEl("div", {
-      cls: "occurrences-view-content",
+      cls: "view-content",
     })
 
-    this.noOccurrencesEl = this.contentEl.createEl("div", {
-      cls: "occurrences-no-occurrences",
-      text: "Not referenced in any occurrences",
-    })
+    this.currentFileTab = new CurrentFileTab(this.contentEl, this.plugin)
+    this.addChild(this.currentFileTab)
 
-    // Create occurrence list element
-    const occurrencesContainer = this.contentEl.createEl("div", {
-      cls: "occurrences-view-content-container",
-    })
-    this.occurrenceList = new OccurrenceList(
-      this.plugin,
-      occurrencesContainer,
-      {
-        listItemOptions: {
-          showDate: true,
-        },
-        groupBy: "month",
-      }
-    )
-    this.addChild(this.occurrenceList)
-
-    this.registerEvents()
-
-    // Initial render
-    this.handleActiveFileChange()
+    this.handleTabChange("current-file")
   }
 
-  private registerEvents(): void {
-    this.registerEvent(
-      this.app.workspace.on("active-leaf-change", () => {
-        this.handleActiveFileChange()
-      })
-    )
+  private handleTabChange(tab: "current-file" | "search" | "inbox"): void {
+    // If the tab is already active, do nothing
+    if (this.currentView === tab) return
 
-    this.registerEvent(
-      this.app.workspace.on("file-open", (file: TFile) => {
-        this.handleActiveFileChange()
-      })
-    )
+    // Set the current view
+    this.currentView = tab
 
-    this.registerEvent(
-      this.app.vault.on("rename", (file: TFile) => {
-        if (this.currentFile === file) {
-          // this.editableHeader.setValue(file.basename).enable()
-        }
-      })
-    )
-  }
+    // Set the active button in header
+    this.header.setActiveTab(tab)
 
-  /**
-   * Handle when the active file changes in the workspace
-   */
-  private async handleActiveFileChange(): Promise<void> {
-    const activeFile = this.app.workspace.getActiveFile()
-
-    // No active file
-    if (!activeFile) {
-      this.currentFile = null
-      // this.currentObject = null
-      return
-    }
-
-    this.currentFile = activeFile
-
-    this.updateOccurrences(activeFile)
-  }
-
-  /**
-   * Update the occurrences display for a given file
-   * @param file - The file to find inbound occurrence links for
-   */
-  private updateOccurrences(file: TFile): void {
-    // Clear existing occurrences
-    this.occurrenceList.empty()
-    this.noOccurrencesEl.hide()
-
-    // Get all inbound links to this file
-    const inboundLinks = this.getInboundLinks(file.path)
-    // TODO: Modify so that items are added to the list as they are found rather
-    // than after all links are found
-
-    if (inboundLinks.length === 0) {
-      this.noOccurrencesEl.show()
-      return
-    }
-
-    // Add occurrences for each inbound link
-    for (const linkPath of inboundLinks) {
-      const occurrence = this.plugin.occurrenceStore.get(linkPath)
-      if (occurrence) {
-        this.occurrenceList.addItem(occurrence)
-      }
-      // Silently skip if occurrence doesn't exist
-    }
-  }
-
-  /**
-   * Get all file paths that link to the given file path
-   * @param targetPath - The file path to find inbound links for
-   * @returns Array of file paths that link to the target
-   */
-  private getInboundLinks(targetPath: string): string[] {
-    const inboundLinks: string[] = []
-
-    // Iterate over all resolved links to find those pointing to our target
-    const resolvedLinks = this.plugin.app.metadataCache.resolvedLinks
-    for (const sourcePath in resolvedLinks) {
-      const links = resolvedLinks[sourcePath]
-      if (links[targetPath]) {
-        inboundLinks.push(sourcePath)
-      }
-    }
-
-    return inboundLinks
+    // Set the active tab
+    const tabs = [
+      this.currentFileTab,
+      // this.searchTab,
+      // this.inboxTab,
+    ]
+    tabs.forEach(tabComponent => tabComponent.hide())
+    tabs.find(tabComponent => tabComponent.id === tab)?.show()
   }
 
   async onClose(): Promise<void> {
