@@ -17,6 +17,7 @@ import {
   OccurrenceProperties,
 } from "@/types"
 import { App, TFile } from "obsidian"
+import { OccurrenceSearch, SearchOptions, SearchResult } from "./search"
 
 /**
  * Store for managing Occurrence objects
@@ -25,9 +26,11 @@ import { App, TFile } from "obsidian"
 export class OccurrenceStore extends EventManager {
   protected items: Map<string, OccurrenceObject> = new Map()
   protected isLoading: boolean = false
+  private searchService: OccurrenceSearch
 
   constructor(protected app: App) {
     super()
+    this.searchService = new OccurrenceSearch(app, this.items)
     this.registerEvents()
   }
 
@@ -76,7 +79,10 @@ export class OccurrenceStore extends EventManager {
         const item = await this.processFile(file)
         if (!item) return
 
+        // Update search indexes for the updated item
+        this.searchService.updateIndexes(item, "remove") // Remove old version
         this.items.set(file.path, item)
+        this.searchService.updateIndexes(item, "add") // Add updated version
         this.emit("item-updated", item)
       })
     })
@@ -128,6 +134,7 @@ export class OccurrenceStore extends EventManager {
 
     try {
       this.items.clear()
+      this.searchService.clear()
 
       const files = this.app.vault
         .getMarkdownFiles()
@@ -137,6 +144,7 @@ export class OccurrenceStore extends EventManager {
         const processedItem = await this.processFile(file)
         if (processedItem) {
           this.items.set(file.path, processedItem)
+          this.searchService.updateIndexes(processedItem, "add")
         }
       }
     } catch (error) {
@@ -183,6 +191,7 @@ export class OccurrenceStore extends EventManager {
         return
       }
       this.items.set(file.path, item)
+      this.searchService.updateIndexes(item, "add")
       this.emit("item-added", item)
     })
   }
@@ -199,6 +208,7 @@ export class OccurrenceStore extends EventManager {
       console.error(`OccurrenceStore not found: ${path}`)
       return
     }
+    this.searchService.updateIndexes(item, "remove")
     this.items.delete(path)
     this.emit("item-removed", path)
   }
@@ -590,5 +600,12 @@ export class OccurrenceStore extends EventManager {
       const occurredAt = occurrence.properties.occurredAt
       return occurredAt >= startDate && occurredAt <= endDate
     })
+  }
+
+  /**
+   * Search occurrences with advanced filtering and pagination
+   */
+  public search(options: SearchOptions = {}): SearchResult {
+    return this.searchService.search(options)
   }
 }
