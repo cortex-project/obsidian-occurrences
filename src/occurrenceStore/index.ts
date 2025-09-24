@@ -156,7 +156,7 @@ export class OccurrenceStore extends Events {
       console.info(
         `OccurrenceStore: loaded ${this.items.size} items in ${duration}ms`
       )
-      this.trigger("loaded", this.items)
+      this.trigger("loaded")
     }
   }
 
