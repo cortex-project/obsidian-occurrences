@@ -2,6 +2,7 @@ import CoretexPlugin from "@/main"
 import { ItemView, WorkspaceLeaf } from "obsidian"
 import { CurrentFileTab } from "./currentFileTab"
 import { Header } from "./header"
+import { SearchTab } from "./searchTab"
 
 export const OCCURRENCES_VIEW = "occurrences-view"
 
@@ -13,7 +14,7 @@ export class OccurrencesView extends ItemView {
   // Child components
   private header: Header
   private currentFileTab: CurrentFileTab
-  // private searchTab: SearchTab
+  private searchTab: SearchTab
   // private inboxTab: InboxTab
 
   // State
@@ -56,7 +57,10 @@ export class OccurrencesView extends ItemView {
     this.currentFileTab = new CurrentFileTab(this.contentEl, this.plugin)
     this.addChild(this.currentFileTab)
 
-    this.handleTabChange("current-file")
+    this.searchTab = new SearchTab(this.contentEl, this.plugin)
+    this.addChild(this.searchTab)
+
+    this.handleTabChange("search")
   }
 
   private handleTabChange(tab: "current-file" | "search" | "inbox"): void {
@@ -72,7 +76,7 @@ export class OccurrencesView extends ItemView {
     // Set the active tab
     const tabs = [
       this.currentFileTab,
-      // this.searchTab,
+      this.searchTab,
       // this.inboxTab,
     ]
     tabs.forEach(tabComponent => tabComponent.hide())

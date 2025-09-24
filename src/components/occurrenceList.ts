@@ -35,7 +35,7 @@ export class OccurrenceList extends Component {
    * Add an occurrence item to the list, maintaining chronological order
    * @param occurrence - The occurrence object to add
    */
-  public addItem(occurrence: OccurrenceObject): void {
+  public addItem(occurrence: OccurrenceObject): OccurrenceListItem {
     const listItem = new OccurrenceListItem(
       occurrence,
       this.containerEl,
@@ -56,6 +56,8 @@ export class OccurrenceList extends Component {
       // Insert into appropriate group
       this.insertIntoGroup(listItem)
     }
+
+    return listItem
   }
 
   /**

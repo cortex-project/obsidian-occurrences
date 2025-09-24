@@ -76,7 +76,7 @@ export default class OccurrencesPlugin extends Plugin {
       leaf = leaves[0]
     } else {
       // Try to get an existing leaf or create a new one
-      leaf = workspace.getRightLeaf(false)
+      leaf = workspace.getLeftLeaf(false)
       if (leaf) {
         await leaf.setViewState({ type: OCCURRENCES_VIEW, active: true })
       }
@@ -84,7 +84,7 @@ export default class OccurrencesPlugin extends Plugin {
 
     if (leaf !== null) {
       // Ensure the sidebar is expanded
-      workspace.rightSplit.expand()
+      workspace.leftSplit.expand()
 
       // Reveal the leaf
       workspace.revealLeaf(leaf)

@@ -15,7 +15,7 @@ export class CurrentFileTab extends Component {
 
   constructor(containerEl: HTMLElement, plugin: OccurrencesPlugin) {
     super()
-    this.containerEl = containerEl
+    this.containerEl = containerEl.createEl("div")
     this.plugin = plugin
     this.app = plugin.app
     this.occurrenceStore = plugin.occurrenceStore
