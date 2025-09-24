@@ -50,14 +50,21 @@ export class SearchTab extends Component {
       })
     )
     this.registerEvent(
-      this.occurrenceStore.on("item-updated", occurrence => {
-        if (this.occurrenceListItems.get(occurrence.file.path)) {
+      this.occurrenceStore.on(
+        "item-updated",
+        (occurrence: OccurrenceObject) => {
+          // Skip if the occurrence is not in the list
+          if (!this.occurrenceListItems.get(occurrence.file.path)) return
+
+          // Remove the old occurrence item
           this.occurrenceListItems.delete(occurrence.file.path)
           this.occurrenceList.removeItem(occurrence.file.path)
+
+          // Add the new occurrence item
           const listItem = this.occurrenceList.addItem(occurrence)
           this.occurrenceListItems.set(occurrence.file.path, listItem)
         }
-      })
+      )
     )
   }
 

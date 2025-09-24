@@ -1,4 +1,3 @@
-import { EventManager } from "@/occurrenceStore/eventManager"
 import {
   applyDatePrefix,
   applyFrontmatterUpdates,
@@ -16,14 +15,14 @@ import {
   OccurrenceObject,
   OccurrenceProperties,
 } from "@/types"
-import { App, TFile } from "obsidian"
+import { App, Events, TFile } from "obsidian"
 import { OccurrenceSearch, SearchOptions, SearchResult } from "./search"
 
 /**
  * Store for managing Occurrence objects
  * Provides functionality for loading, managing, and processing occurrence collections
  */
-export class OccurrenceStore extends EventManager {
+export class OccurrenceStore extends Events {
   protected items: Map<string, OccurrenceObject> = new Map()
   protected isLoading: boolean = false
   private searchService: OccurrenceSearch
@@ -83,7 +82,7 @@ export class OccurrenceStore extends EventManager {
         this.searchService.updateIndexes(item, "remove") // Remove old version
         this.items.set(file.path, item)
         this.searchService.updateIndexes(item, "add") // Add updated version
-        this.emit("item-updated", item)
+        this.trigger("item-updated", item)
       })
     })
   }
@@ -157,7 +156,7 @@ export class OccurrenceStore extends EventManager {
       console.info(
         `OccurrenceStore: loaded ${this.items.size} items in ${duration}ms`
       )
-      this.emit("loaded", this.items)
+      this.trigger("loaded", this.items)
     }
   }
 
@@ -192,7 +191,7 @@ export class OccurrenceStore extends EventManager {
       }
       this.items.set(file.path, item)
       this.searchService.updateIndexes(item, "add")
-      this.emit("item-added", item)
+      this.trigger("item-added", item)
     })
   }
 
@@ -210,7 +209,7 @@ export class OccurrenceStore extends EventManager {
     }
     this.searchService.updateIndexes(item, "remove")
     this.items.delete(path)
-    this.emit("item-removed", path)
+    this.trigger("item-removed", path)
   }
 
   /**
