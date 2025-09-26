@@ -1,5 +1,4 @@
 import { OccurrenceObject } from "@/types"
-import { toISOStringWithTimezone } from "./dateUtils"
 
 /**
  * Configuration for mapping interface properties to frontmatter field names
@@ -40,7 +39,21 @@ function transformValueForFrontmatter(key: string, value: any): any {
 
   // Handle Date objects - convert to ISO string with timezone
   if (value instanceof Date) {
-    return toISOStringWithTimezone(value)
+    const localISOTime = new Date(
+      value.getTime() - value.getTimezoneOffset() * 60000
+    )
+      .toISOString()
+      .slice(0, -1)
+
+    const offset = value.getTimezoneOffset()
+    const offsetHours = Math.floor(Math.abs(offset) / 60)
+    const offsetMinutes = Math.abs(offset) % 60
+    const offsetSign = offset <= 0 ? "+" : "-"
+    const offsetString = `${offsetSign}${offsetHours
+      .toString()
+      .padStart(2, "0")}:${offsetMinutes.toString().padStart(2, "0")}`
+
+    return localISOTime + offsetString
   }
 
   // Handle arrays of objects (like links) - convert to string format

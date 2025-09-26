@@ -1,21 +1,14 @@
-import {
-  applyDatePrefix,
-  applyFrontmatterUpdates,
-  arraysEqual,
-  convertListToLinks,
-  linkEqual,
-  linksArrayEqual,
-  normalizeTags,
-  OCCURRENCE_FRONTMATTER_MAPPING,
-  parseLink,
-  removeDatePrefix,
-} from "@/occurrenceStore/utils"
+import { convertListToLinks, parseLink } from "@/linkUtils"
 import {
   OCCURRENCE_DATE_FORMAT,
   OccurrenceObject,
   OccurrenceProperties,
 } from "@/types"
 import { App, Events, TFile } from "obsidian"
+import {
+  applyFrontmatterUpdates,
+  OCCURRENCE_FRONTMATTER_MAPPING,
+} from "./frontmatterMapping"
 import { OccurrenceSearch, SearchOptions, SearchResult } from "./search"
 
 /**
@@ -31,6 +24,109 @@ export class OccurrenceStore extends Events {
     super()
     this.searchService = new OccurrenceSearch(app, this.items)
     this.registerEvents()
+  }
+
+  // Utility functions (previously in comparisonUtils.ts)
+  private static linksArrayEqual(
+    a:
+      | Array<{ type: string; target: string; displayText?: string }>
+      | undefined,
+    b: Array<{ type: string; target: string; displayText?: string }> | undefined
+  ): boolean {
+    if (!a && !b) return true
+    if (!a || !b) return false
+    if (a.length !== b.length) return false
+    return a.every(
+      (link, index) =>
+        link.type === b[index].type &&
+        link.target === b[index].target &&
+        link.displayText === b[index].displayText
+    )
+  }
+
+  private static linkEqual(
+    a: { type: string; target: string; displayText?: string } | null,
+    b: { type: string; target: string; displayText?: string } | null
+  ): boolean {
+    if (!a && !b) return true
+    if (!a || !b) return false
+    return (
+      a.type === b.type &&
+      a.target === b.target &&
+      a.displayText === b.displayText
+    )
+  }
+
+  private static arraysEqual(
+    a: string[] | undefined,
+    b: string[] | undefined
+  ): boolean {
+    if (!a && !b) return true
+    if (!a || !b) return false
+    if (a.length !== b.length) return false
+    return a.every((val, index) => val === b[index])
+  }
+
+  // Utility functions (previously in tagUtils.ts)
+  private static normalizeTags(tags: unknown): string[] {
+    if (!tags) return []
+    if (Array.isArray(tags)) return tags
+    if (typeof tags === "string") return [tags]
+    return []
+  }
+
+  // Utility functions (previously in dateUtils.ts)
+  private static removeDatePrefix(basename: string, format: string): string {
+    // Convert the format string to a regular expression pattern
+    let regexPattern = format
+      .replace("YYYY", "\\d{4}")
+      .replace("MM", "\\d{2}")
+      .replace("DD", "\\d{2}")
+      .replace("HH", "\\d{2}")
+      .replace("mm", "\\d{2}")
+      .replace("ss", "\\d{2}")
+
+    // Create regex from the pattern
+    const dateRegex = new RegExp(regexPattern)
+
+    // Replace the matched pattern with an empty string
+    return basename.replace(dateRegex, "").trim()
+  }
+
+  private static applyDatePrefix(
+    title: string,
+    date: Date,
+    format: string
+  ): string {
+    // Format the date according to the specified format
+    const formattedDate = format
+      .replace("YYYY", date.getFullYear().toString())
+      .replace("MM", String(date.getMonth() + 1).padStart(2, "0"))
+      .replace("DD", String(date.getDate()).padStart(2, "0"))
+      .replace("HH", String(date.getHours()).padStart(2, "0"))
+      .replace("mm", String(date.getMinutes()).padStart(2, "0"))
+      .replace("ss", String(date.getSeconds()).padStart(2, "0"))
+
+    // Return the title with the date prefix
+    return `${formattedDate} ${title}`
+  }
+
+  private static toISOStringWithTimezone(date: Date): string {
+    const localISOTime = new Date(
+      date.getTime() - date.getTimezoneOffset() * 60000
+    )
+      .toISOString()
+      .slice(0, -1)
+
+    const offset = date.getTimezoneOffset()
+    const offsetHours = Math.floor(Math.abs(offset) / 60)
+    const offsetMinutes = Math.abs(offset) % 60
+    const offsetSign = offset <= 0 ? "+" : "-"
+    const offsetString = `${offsetSign}${offsetHours
+      .toString()
+      .padStart(2, "0")}:${offsetMinutes.toString().padStart(2, "0")}`
+
+    return localISOTime + offsetString
   }
 
   /**
@@ -280,7 +376,7 @@ export class OccurrenceStore extends Events {
       participants: convertListToLinks(occurrence_participants),
       intents: convertListToLinks(occurrence_intents),
       location: occurrence_location ? parseLink(occurrence_location) : null,
-      tags: normalizeTags(tags),
+      tags: OccurrenceStore.normalizeTags(tags),
       // Include ALL other frontmatter properties in the properties object
       ...otherProperties,
     }
@@ -288,7 +384,10 @@ export class OccurrenceStore extends Events {
     const occurrence: OccurrenceObject = {
       path: file.path,
       file,
-      title: removeDatePrefix(file.basename, OCCURRENCE_DATE_FORMAT),
+      title: OccurrenceStore.removeDatePrefix(
+        file.basename,
+        OCCURRENCE_DATE_FORMAT
+      ),
       class: "Occurrence",
       properties,
     }
@@ -331,16 +430,22 @@ export class OccurrenceStore extends Events {
     const newLocation = occurrence_location
       ? parseLink(occurrence_location)
       : null
-    const newTags = normalizeTags(tags)
+    const newTags = OccurrenceStore.normalizeTags(tags)
 
     // Check if core Occurrence properties changed
     if (
       cachedItem.properties.occurredAt.getTime() !== newOccurredAt.getTime() ||
       cachedItem.properties.toProcess !== newToProcess ||
-      !linksArrayEqual(cachedItem.properties.participants, newParticipants) ||
-      !linksArrayEqual(cachedItem.properties.intents, newIntents) ||
-      !linkEqual(cachedItem.properties.location, newLocation) ||
-      !arraysEqual(cachedItem.properties.tags, newTags)
+      !OccurrenceStore.linksArrayEqual(
+        cachedItem.properties.participants,
+        newParticipants
+      ) ||
+      !OccurrenceStore.linksArrayEqual(
+        cachedItem.properties.intents,
+        newIntents
+      ) ||
+      !OccurrenceStore.linkEqual(cachedItem.properties.location, newLocation) ||
+      !OccurrenceStore.arraysEqual(cachedItem.properties.tags, newTags)
     ) {
       return true
     }
@@ -377,8 +482,11 @@ export class OccurrenceStore extends Events {
     const frontmatter = fileCache?.frontmatter ?? {}
 
     if (frontmatter.occurrence_occurred_at) {
-      const title = removeDatePrefix(file.basename, OCCURRENCE_DATE_FORMAT)
-      return applyDatePrefix(
+      const title = OccurrenceStore.removeDatePrefix(
+        file.basename,
+        OCCURRENCE_DATE_FORMAT
+      )
+      return OccurrenceStore.applyDatePrefix(
         title,
         new Date(frontmatter.occurrence_occurred_at),
         OCCURRENCE_DATE_FORMAT
@@ -400,7 +508,11 @@ export class OccurrenceStore extends Events {
     const occurredAt = occurrenceData.properties?.occurredAt || new Date()
 
     // Generate filename with date prefix
-    const fileName = applyDatePrefix(title, occurredAt, OCCURRENCE_DATE_FORMAT)
+    const fileName = OccurrenceStore.applyDatePrefix(
+      title,
+      occurredAt,
+      OCCURRENCE_DATE_FORMAT
+    )
     const filePath = `Occurrences/${fileName}.md`
 
     // Check if file already exists
@@ -463,7 +575,7 @@ export class OccurrenceStore extends Events {
         const newOccurredAt =
           updates.properties?.occurredAt ||
           currentOccurrence.properties.occurredAt
-        const newFileName = applyDatePrefix(
+        const newFileName = OccurrenceStore.applyDatePrefix(
           newTitle,
           newOccurredAt,
           OCCURRENCE_DATE_FORMAT
