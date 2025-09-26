@@ -161,13 +161,6 @@ export class OccurrenceStore extends Events {
   }
 
   /**
-   * Get all occurrences in the store
-   */
-  public getAll(): OccurrenceObject[] {
-    return Array.from(this.items.values())
-  }
-
-  /**
    * Get an occurrence by its file path
    */
   public get(path: string): OccurrenceObject | undefined {
@@ -217,18 +210,6 @@ export class OccurrenceStore extends Events {
    */
   public get isLoaded(): boolean {
     return !this.isLoading && this.items.size > 0
-  }
-
-  /**
-   * Ensure the store is loaded
-   */
-  public async ensureLoaded(): Promise<void> {
-    if (this.isLoaded) {
-      return
-    }
-    if (!this.isLoading) {
-      await this.load()
-    }
   }
 
   /**
@@ -408,20 +389,6 @@ export class OccurrenceStore extends Events {
   }
 
   /**
-   * Sort occurrences by date descending (newest first), then by title
-   */
-  private sortItems(items: OccurrenceObject[]): OccurrenceObject[] {
-    return items.sort((a, b) => {
-      // Sort by date descending (newest first), then by title
-      const dateComparison =
-        b.properties.occurredAt.getTime() - a.properties.occurredAt.getTime()
-      return dateComparison !== 0
-        ? dateComparison
-        : a.title.localeCompare(b.title)
-    })
-  }
-
-  /**
    * Create a new Occurrence file
    * @param {Partial<OccurrenceObject>} occurrenceData - The Occurrence data to create
    * @returns {Promise<TFile>} - A promise that resolves when the Occurrence file is created
@@ -577,28 +544,6 @@ export class OccurrenceStore extends Events {
       console.error(`Failed to delete Occurrence: ${occurrence.title}`, error)
       throw error
     }
-  }
-
-  /**
-   * Get occurrences to process
-   */
-  public getOccurrencesToProcess(): OccurrenceObject[] {
-    return Array.from(this.items.values()).filter(
-      occurrence => occurrence.properties.toProcess
-    )
-  }
-
-  /**
-   * Get occurrences by date range
-   */
-  public getOccurrencesByDateRange(
-    startDate: Date,
-    endDate: Date
-  ): OccurrenceObject[] {
-    return Array.from(this.items.values()).filter(occurrence => {
-      const occurredAt = occurrence.properties.occurredAt
-      return occurredAt >= startDate && occurredAt <= endDate
-    })
   }
 
   /**
