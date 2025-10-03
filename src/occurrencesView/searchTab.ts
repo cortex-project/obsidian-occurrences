@@ -2,7 +2,7 @@ import { OccurrenceList, OccurrenceListItem } from "@/components"
 import OccurrencesPlugin from "@/main"
 import { OccurrenceStore } from "@/occurrenceStore"
 import { OccurrenceObject } from "@/types"
-import { Component } from "obsidian"
+import { Component, TFile } from "obsidian"
 
 export class SearchTab extends Component {
   private containerEl: HTMLElement
@@ -11,6 +11,7 @@ export class SearchTab extends Component {
   private occurrenceList: OccurrenceList
   private occurrenceListItems: Map<string, OccurrenceListItem> = new Map()
   private occurrences: OccurrenceObject[] = []
+  private currentActiveFile: TFile | null = null
   public id: string = "search"
 
   constructor(containerEl: HTMLElement, plugin: OccurrencesPlugin) {
@@ -67,6 +68,9 @@ export class SearchTab extends Component {
           // Add the new occurrence item
           const listItem = this.occurrenceList.addItem(occurrence)
           this.occurrenceListItems.set(occurrence.file.path, listItem)
+
+          // Update active state for new/updated item
+          this.updateActiveFileHighlight(occurrence.file.path)
         }
       )
     )
@@ -84,6 +88,16 @@ export class SearchTab extends Component {
       this.occurrenceStore.on("item-added", (occurrence: OccurrenceObject) => {
         const listItem = this.occurrenceList.addItem(occurrence)
         this.occurrenceListItems.set(occurrence.file.path, listItem)
+
+        // Update active state for new item
+        this.updateActiveFileHighlight(occurrence.file.path)
+      })
+    )
+
+    // Track active file changes for highlighting
+    this.registerEvent(
+      this.plugin.app.workspace.on("active-leaf-change", () => {
+        this.onActiveFileChange()
       })
     )
   }
@@ -98,6 +112,47 @@ export class SearchTab extends Component {
       const listItem = this.occurrenceList.addItem(occurrence)
       this.occurrenceListItems.set(occurrence.file.path, listItem)
     }
+
+    // Initialize active state after loading
+    this.currentActiveFile = this.plugin.app.workspace.getActiveFile()
+    this.updateAllActiveStates()
+  }
+
+  /**
+   * Handle active file changes
+   */
+  private onActiveFileChange(): void {
+    const newActiveFile = this.plugin.app.workspace.getActiveFile()
+
+    // Only update if there's actually a change
+    if (newActiveFile !== this.currentActiveFile) {
+      this.currentActiveFile = newActiveFile
+      this.updateAllActiveStates()
+    }
+  }
+
+  /**
+   * Update active highlighting for a specific file
+   */
+  private updateActiveFileHighlight(filePath: string): void {
+    if (!this.currentActiveFile || filePath !== this.currentActiveFile.path) {
+      return
+    }
+
+    const listItem = this.occurrenceListItems.get(filePath)
+    if (listItem) {
+      listItem.setActive(true)
+    }
+  }
+
+  /**
+   * Update active highlighting for all items
+   */
+  private updateAllActiveStates(): void {
+    this.occurrenceListItems.forEach((listItem, filePath) => {
+      const isActive = this.currentActiveFile?.path === filePath
+      listItem.setActive(isActive)
+    })
   }
 
   public hide(): void {
