@@ -97,44 +97,33 @@ export class CurrentFileTab extends Component {
     this.occurrenceList.empty()
     this.noOccurrencesEl.hide()
 
-    // Get all inbound links to this file
-    const inboundLinks = this.getInboundLinks(file.path)
-    // TODO: Modify so that items are added to the list as they are found rather
-    // than after all links are found
+    // Wait for occurrence store to initialize before searching
+    if (!this.plugin.occurrenceStore.isLoaded) {
+      this.noOccurrencesEl.show()
+      this.noOccurrencesEl.setText("Loading occurrences...")
 
-    if (inboundLinks.length === 0) {
+      // Retry after a short delay
+      setTimeout(() => {
+        this.updateOccurrences(file)
+      }, 100)
+      return
+    }
+
+    //Search for occurrences that link to this file
+    const searchResult = this.plugin.occurrenceStore.search({
+      linksTo: file.path,
+    })
+
+    if (searchResult.items.length === 0) {
+      this.noOccurrencesEl.setText("No occurrences found")
       this.noOccurrencesEl.show()
       return
     }
 
-    // Add occurrences for each inbound link
-    for (const linkPath of inboundLinks) {
-      const occurrence = this.plugin.occurrenceStore.get(linkPath)
-      if (occurrence) {
-        this.occurrenceList.addItem(occurrence)
-      }
-      // Silently skip if occurrence doesn't exist
+    // Add occurrences to the list
+    for (const occurrence of searchResult.items) {
+      this.occurrenceList.addItem(occurrence)
     }
-  }
-
-  /**
-   * Get all file paths that link to the given file path
-   * @param targetPath - The file path to find inbound links for
-   * @returns Array of file paths that link to the target
-   */
-  private getInboundLinks(targetPath: string): string[] {
-    const inboundLinks: string[] = []
-
-    // Iterate over all resolved links to find those pointing to our target
-    const resolvedLinks = this.plugin.app.metadataCache.resolvedLinks
-    for (const sourcePath in resolvedLinks) {
-      const links = resolvedLinks[sourcePath]
-      if (links[targetPath]) {
-        inboundLinks.push(sourcePath)
-      }
-    }
-
-    return inboundLinks
   }
 
   public hide(): void {

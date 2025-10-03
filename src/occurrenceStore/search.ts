@@ -4,6 +4,7 @@ import { App } from "obsidian"
 export interface SearchOptions {
   query?: string
   tags?: string[]
+  linksTo?: string // File path to filter occurrences that link to this target
   sortOrder?: "asc" | "desc"
   limit?: number
   offset?: number
@@ -31,10 +32,38 @@ export class OccurrenceSearch {
   }
 
   /**
+   * Search for occurrences that link to a specific target file path
+   * @param targetPath - The file path to find inbound links for
+   * @returns Set of occurrence file paths that link to the target
+   */
+  private searchByReverseLinks(targetPath: string): Set<string> {
+    const results = new Set<string>()
+    const resolvedLinks = this.app.metadataCache.resolvedLinks
+
+    // Check each occurrence file for links to the target
+    for (const [occurrencePath] of this.items) {
+      const links = resolvedLinks[occurrencePath]
+      if (links && links[targetPath]) {
+        results.add(occurrencePath)
+      }
+    }
+
+    return results
+  }
+
+  /**
    * Perform a search with the given options
    */
   public search(options: SearchOptions = {}): SearchResult {
     let candidatePaths: Set<string> = new Set(this.items.keys())
+
+    // Apply linksTo filter (occurrences that link to a specific target)
+    if (options.linksTo) {
+      const linkingPaths = this.searchByReverseLinks(options.linksTo)
+      candidatePaths = new Set(
+        [...candidatePaths].filter(path => linkingPaths.has(path))
+      )
+    }
 
     // Apply tag filter
     if (options.tags && options.tags.length > 0) {

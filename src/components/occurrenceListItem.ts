@@ -117,7 +117,7 @@ export class OccurrenceListItem extends ListItem<OccurrenceObject> {
         .setTitle("Delete Occurrence")
         .setIcon("trash")
         .onClick(() => {
-          this.occurrenceStore.delete(this.occurrence.file.path)
+          this.occurrenceStore.remove(this.occurrence.file.path)
         })
       // Add a danger class to the item for styling
       const itemDom = (item as any).dom as HTMLElement
