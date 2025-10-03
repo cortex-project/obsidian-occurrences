@@ -1,7 +1,9 @@
+import { SearchBar } from "@/components"
 import { Component, setIcon, setTooltip } from "obsidian"
 
 export interface SearchFilters {
   search: boolean
+  searchQuery: string
   currentFile: boolean
   inbox: boolean
 }
@@ -11,9 +13,11 @@ export class Header extends Component {
   private currentFileButton: HTMLElement
   private searchButton: HTMLElement
   private inboxButton: HTMLElement
+  private searchBar: SearchBar
   private onFilterChange: (filters: SearchFilters) => void
   private filters: SearchFilters = {
     search: false,
+    searchQuery: "",
     currentFile: false,
     inbox: false,
   }
@@ -47,6 +51,20 @@ export class Header extends Component {
       this.toggleFilter("search")
     })
 
+    // Create search bar component
+    this.searchBar = new SearchBar(
+      this.headerEl,
+      (query: string) => {
+        this.filters.searchQuery = query
+        this.onFilterChange({ ...this.filters })
+      },
+      {
+        placeholder: "Search occurrences...",
+        debounceMs: 300,
+      }
+    )
+    this.addChild(this.searchBar)
+
     // Current file button
     this.currentFileButton = buttonsContainer.createEl("div", {
       cls: "clickable-icon nav-action-button",
@@ -77,8 +95,21 @@ export class Header extends Component {
   /**
    * Toggle a specific filter
    */
-  private toggleFilter(filterKey: keyof SearchFilters): void {
+  private toggleFilter(
+    filterKey: Exclude<keyof SearchFilters, "searchQuery">
+  ): void {
     this.filters[filterKey] = !this.filters[filterKey]
+
+    // Handle search bar visibility
+    if (filterKey === "search") {
+      if (this.filters.search) {
+        this.searchBar.show()
+      } else {
+        this.searchBar.hide()
+        this.filters.searchQuery = ""
+      }
+    }
+
     this.updateButtonStates()
     this.onFilterChange({ ...this.filters })
   }

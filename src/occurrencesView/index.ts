@@ -23,6 +23,7 @@ export class OccurrencesView extends ItemView {
   private currentActiveFile: TFile | null = null
   private currentFilters: SearchFilters = {
     search: false,
+    searchQuery: "",
     currentFile: false,
     inbox: false,
   }
@@ -170,18 +171,12 @@ export class OccurrencesView extends ItemView {
 
     // Build search options based on current filters
     const searchOptions: any = {
-      query: "",
+      query: this.currentFilters.searchQuery,
     }
 
     // Apply current file filter if active
     if (this.currentFilters.currentFile && this.currentActiveFile) {
       searchOptions.linksTo = this.currentActiveFile.path
-    }
-
-    // Apply search filter if active
-    if (this.currentFilters.search) {
-      // For now, search filter does nothing
-      // This will be implemented later when search functionality is added
     }
 
     // Apply inbox filter if active
@@ -301,8 +296,8 @@ export class OccurrencesView extends ItemView {
           `linking to "${this.currentActiveFile.basename}"`
         )
       }
-      if (this.currentFilters.search) {
-        filterDescriptions.push("in search results")
+      if (this.currentFilters.searchQuery) {
+        filterDescriptions.push(`matching "${this.currentFilters.searchQuery}"`)
       }
       if (this.currentFilters.inbox) {
         filterDescriptions.push("in inbox")
