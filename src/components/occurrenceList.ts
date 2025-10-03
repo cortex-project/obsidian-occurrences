@@ -252,12 +252,16 @@ export class OccurrenceList extends Component {
   private getGroupKey(date: Date): string {
     switch (this.options.groupBy) {
       case "day":
-        return date.toISOString().split("T")[0] // YYYY-MM-DD
+        // Use local date methods instead of toISOString() to respect user's timezone
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, "0")
+        const day = String(date.getDate()).padStart(2, "0")
+        return `${year}-${month}-${day}` // YYYY-MM-DD
       case "month":
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
           2,
           "0"
-        )}` // YYYY-MM
+        )}` // YYY-MM
       case "year":
         return date.getFullYear().toString() // YYYY
       default:
