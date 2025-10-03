@@ -168,6 +168,7 @@ export class OccurrenceList extends Component {
 
       // Remove group if empty
       if (group.getListItems().length === 0) {
+        group.getRootEl().remove()
         group.unload()
         this.groups.delete(groupKey)
         this.removeChild(group)

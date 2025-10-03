@@ -36,6 +36,7 @@ export class SearchTab extends Component {
     )
     this.addChild(this.occurrenceList)
 
+    // Load occurrences if the occurrence store is alreadyloaded
     if (this.occurrenceStore.isLoaded) {
       this.loadAndRenderOccurrences()
     }
@@ -44,11 +45,14 @@ export class SearchTab extends Component {
   }
 
   private registerEvents(): void {
+    // Load occurrences when the occurrence store is loaded
     this.registerEvent(
       this.occurrenceStore.on("loaded", () => {
         this.loadAndRenderOccurrences()
       })
     )
+
+    // Update occurrence list item when the occurrence data is updated
     this.registerEvent(
       this.occurrenceStore.on(
         "item-updated",
@@ -65,6 +69,22 @@ export class SearchTab extends Component {
           this.occurrenceListItems.set(occurrence.file.path, listItem)
         }
       )
+    )
+
+    // Remove occurrence list item when the occurrence data is removed
+    this.registerEvent(
+      this.occurrenceStore.on("item-removed", (path: string) => {
+        this.occurrenceListItems.delete(path)
+        this.occurrenceList.removeItem(path)
+      })
+    )
+
+    // Update occurrence list item when the occurrence data is added
+    this.registerEvent(
+      this.occurrenceStore.on("item-added", (occurrence: OccurrenceObject) => {
+        const listItem = this.occurrenceList.addItem(occurrence)
+        this.occurrenceListItems.set(occurrence.file.path, listItem)
+      })
     )
   }
 
