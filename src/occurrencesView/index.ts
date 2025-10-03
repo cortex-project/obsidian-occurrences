@@ -186,8 +186,7 @@ export class OccurrencesView extends ItemView {
 
     // Apply inbox filter if active
     if (this.currentFilters.inbox) {
-      // For now, inbox filter does nothing
-      // This will be implemented when inbox functionality is added
+      searchOptions.toProcess = true
     }
 
     // Give the list instance based on current filters
@@ -222,7 +221,12 @@ export class OccurrencesView extends ItemView {
       }
     }
 
-    // TODO: Add other filter logic for search and inbox when implemented
+    // Apply inbox filter if active
+    if (this.currentFilters.inbox) {
+      if (!occurrence.properties.toProcess) {
+        return false
+      }
+    }
 
     return true
   }

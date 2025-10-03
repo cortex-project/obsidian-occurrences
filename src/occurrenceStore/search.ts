@@ -5,6 +5,7 @@ export interface SearchOptions {
   query?: string
   tags?: string[]
   linksTo?: string // File path to filter occurrences that link to this target
+  toProcess?: boolean // Filter occurrences that are marked as toProcess
   sortOrder?: "asc" | "desc"
   limit?: number
   offset?: number
@@ -86,19 +87,27 @@ export class OccurrenceSearch {
       .map(path => this.items.get(path))
       .filter((item): item is OccurrenceObject => item !== undefined)
 
+    // Apply toProcess filter
+    const finalResults =
+      options.toProcess !== undefined
+        ? results.filter(
+            item => item.properties.toProcess === options.toProcess
+          )
+        : results
+
     // Sort results
     const sortOrder = options.sortOrder || "desc"
-    results.sort((a, b) => {
+    finalResults.sort((a, b) => {
       const comparison =
         a.properties.occurredAt.getTime() - b.properties.occurredAt.getTime()
       return sortOrder === "desc" ? -comparison : comparison
     })
 
     // Apply pagination
-    const total = results.length
+    const total = finalResults.length
     const offset = options.offset || 0
     const limit = options.limit || 100
-    const paginatedResults = results.slice(offset, offset + limit)
+    const paginatedResults = finalResults.slice(offset, offset + limit)
 
     return {
       items: paginatedResults,
