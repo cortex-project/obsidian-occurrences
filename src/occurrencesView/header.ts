@@ -1,21 +1,32 @@
 import { Component, setIcon, setTooltip } from "obsidian"
 
+export interface SearchFilters {
+  search: boolean
+  currentFile: boolean
+  inbox: boolean
+}
+
 export class Header extends Component {
   private headerEl: HTMLElement
   private currentFileButton: HTMLElement
   private searchButton: HTMLElement
   private inboxButton: HTMLElement
-  private onTabChange: (tab: "current-file" | "search" | "inbox") => void
+  private onFilterChange: (filters: SearchFilters) => void
+  private filters: SearchFilters = {
+    search: false,
+    currentFile: false,
+    inbox: false,
+  }
 
   constructor(
     container: HTMLElement,
-    onTabChange: (tab: "current-file" | "search" | "inbox") => void
+    onFilterChange: (filters: SearchFilters) => void
   ) {
     super()
     this.headerEl = container.createEl("div", {
       cls: "occurrences-view-header",
     })
-    this.onTabChange = onTabChange
+    this.onFilterChange = onFilterChange
     this.render()
   }
 
@@ -30,10 +41,10 @@ export class Header extends Component {
       attr: { id: "search" },
     })
     setIcon(this.searchButton, "search")
-    setTooltip(this.searchButton, "Search")
+    setTooltip(this.searchButton, "Toggle Search")
 
     this.searchButton.addEventListener("click", () => {
-      this.onTabChange("search")
+      this.toggleFilter("search")
     })
 
     // Current file button
@@ -42,10 +53,10 @@ export class Header extends Component {
       attr: { id: "current-file" },
     })
     setIcon(this.currentFileButton, "crosshair")
-    setTooltip(this.currentFileButton, "Current file")
+    setTooltip(this.currentFileButton, "Toggle Current File Filter")
 
     this.currentFileButton.addEventListener("click", () => {
-      this.onTabChange("current-file")
+      this.toggleFilter("currentFile")
     })
 
     // Inbox button
@@ -54,21 +65,55 @@ export class Header extends Component {
       attr: { id: "inbox" },
     })
     setIcon(this.inboxButton, "inbox")
-    setTooltip(this.inboxButton, "Inbox")
+    setTooltip(this.inboxButton, "Toggle Inbox")
 
     this.inboxButton.addEventListener("click", () => {
-      this.onTabChange("inbox")
+      this.toggleFilter("inbox")
     })
+
+    this.updateButtonStates()
   }
 
-  public setActiveTab(tab: "current-file" | "search" | "inbox"): void {
-    const buttons = [
-      this.currentFileButton,
-      this.searchButton,
-      this.inboxButton,
-    ]
-    buttons.forEach(button => button.removeClass("is-active"))
-    buttons.find(button => button.id === tab)?.addClass("is-active")
+  /**
+   * Toggle a specific filter
+   */
+  private toggleFilter(filterKey: keyof SearchFilters): void {
+    this.filters[filterKey] = !this.filters[filterKey]
+    this.updateButtonStates()
+    this.onFilterChange({ ...this.filters })
+  }
+
+  /**
+   * Update button visual states based on current filters
+   */
+  private updateButtonStates(): void {
+    // Update search button
+    if (this.filters.search) {
+      this.searchButton.addClass("is-active")
+    } else {
+      this.searchButton.removeClass("is-active")
+    }
+
+    // Update current file button
+    if (this.filters.currentFile) {
+      this.currentFileButton.addClass("is-active")
+    } else {
+      this.currentFileButton.removeClass("is-active")
+    }
+
+    // Update inbox button
+    if (this.filters.inbox) {
+      this.inboxButton.addClass("is-active")
+    } else {
+      this.inboxButton.removeClass("is-active")
+    }
+  }
+
+  /**
+   * Get current filter state
+   */
+  public getFilters(): SearchFilters {
+    return { ...this.filters }
   }
 
   public getElement(): HTMLElement {
