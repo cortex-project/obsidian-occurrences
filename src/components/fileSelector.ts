@@ -1,4 +1,4 @@
-import { Component, TFile, setIcon, debounce, fuzzySearch, prepareFuzzySearch } from "obsidian"
+import { Component, TFile, setIcon, debounce } from "obsidian"
 
 export interface FileSelectorOptions {
   placeholder?: string
@@ -219,18 +219,19 @@ export class FileSelector extends Component {
       // Limit to first 10 when no query
       files = files.slice(0, 10)
     } else {
-      // Filter files by fuzzy search
-      const preparedSearch = prepareFuzzySearch(query)
-      const searchResults = this.allFiles
-        .map(file => ({
-          file,
-          match: fuzzySearch(preparedSearch, file.basename)
-        }))
-        .filter(result => result.match)
-        .sort((a, b) => (b.match?.score || 0) - (a.match?.score || 0))
+      // Filter files by simple string matching
+      const queryLower = query.toLowerCase()
+      files = this.allFiles
+        .filter(file => file.basename.toLowerCase().includes(queryLower))
+        .sort((a, b) => {
+          // Prioritize files that start with the query
+          const aStartsWith = a.basename.toLowerCase().startsWith(queryLower)
+          const bStartsWith = b.basename.toLowerCase().startsWith(queryLower)
+          if (aStartsWith && !bStartsWith) return -1
+          if (!aStartsWith && bStartsWith) return 1
+          return a.basename.localeCompare(b.basename)
+        })
         .slice(0, 10)
-      
-      files = searchResults.map(r => r.file)
     }
 
     // Add current file suggestion if no query and not already first
@@ -276,13 +277,8 @@ export class FileSelector extends Component {
     })
     
     if (query.trim()) {
-      const preparedSearch = prepareFuzzySearch(query)
-      const match = fuzzySearch(preparedSearch, file.basename)
-      if (match) {
-        nameEl.innerHTML = this.highlightMatches(file.basename, match.matches)
-      } else {
-        nameEl.textContent = file.basename
-      }
+      // Simple highlighting - wrap matching parts in spans
+      nameEl.innerHTML = this.highlightText(file.basename, query)
     } else {
       nameEl.textContent = file.basename
     }
@@ -298,18 +294,20 @@ export class FileSelector extends Component {
     })
   }
 
-  private highlightMatches(text: string, matches: number[][]): string {
-    let result = ""
-    let lastIndex = 0
-
-    matches.forEach(([start, end]) => {
-      result += text.slice(lastIndex, start)
-      result += `<span class="suggestion-highlight">${text.slice(start, end + 1)}</span>`
-      lastIndex = end + 1
-    })
-
-    result += text.slice(lastIndex)
-    return result
+  private highlightText(text: string, query: string): string {
+    if (!query.trim()) return text
+    
+    const queryLower = query.toLowerCase()
+    const textLower = text.toLowerCase()
+    const startIndex = textLower.indexOf(queryLower)
+    
+    if (startIndex === -1) return text
+    
+    const beforeMatch = text.slice(0, startIndex)
+    const match = text.slice(startIndex, startIndex + query.length)
+    const afterMatch = text.slice(startIndex + query.length)
+    
+    return `${beforeMatch}<span class="suggestion-highlight">${match}</span>${afterMatch}`
   }
 
   private selectCurrentFile(): void {
