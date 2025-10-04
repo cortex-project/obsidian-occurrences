@@ -35,7 +35,12 @@ export class Header extends Component {
   }
 
   private render(): void {
-    const buttonsContainer = this.headerEl.createEl("div", {
+    // Create nav-header wrapper (matches built-in tags view structure)
+    const navHeader = this.headerEl.createEl("div", {
+      cls: "nav-header",
+    })
+
+    const buttonsContainer = navHeader.createEl("div", {
       cls: "nav-buttons-container",
     })
 
@@ -51,9 +56,9 @@ export class Header extends Component {
       this.toggleFilter("search")
     })
 
-    // Create search bar component
+    // Create search bar component - pass navHeader as container
     this.searchBar = new SearchBar(
-      this.headerEl,
+      navHeader,
       (query: string) => {
         this.filters.searchQuery = query
         this.onFilterChange({ ...this.filters })
