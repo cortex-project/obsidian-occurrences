@@ -89,3 +89,151 @@
   margin-left: 2px;
   width: 100%;
 }
+
+/* ========================================
+    FILE SELECTOR COMPONENT
+======================================== */
+
+.file-selector-container {
+  width: 100%;
+  position: relative;
+}
+
+.file-selector-input-container {
+  display: flex;
+  align-items: center;
+  background-color: var(--background-primary-alt);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  gap: 6px;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.file-selector-input-container:focus-within {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.file-selector-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.file-selector-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.file-selector-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-normal);
+  font-size: 14px;
+  min-width: 0;
+}
+
+.file-selector-input::placeholder {
+  color: var(--text-muted);
+}
+
+.file-selector-clear-button {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background-color: var(--text-muted);
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s ease-in-out;
+  flex-shrink: 0;
+}
+
+.file-selector-clear-button:hover {
+  opacity: 1;
+}
+
+.file-selector-clear-button::after {
+  content: "×";
+  color: var(--background-primary);
+  font-size: 12px;
+  line-height: 1;
+  font-weight: bold;
+}
+
+.file-selector-target-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.15s ease-in-out;
+  flex-shrink: 0;
+}
+
+.file-selector-target-button:hover {
+  background-color: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.file-selector-target-button.is-active {
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.file-selector-target-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.file-selector-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  margin-top: 4px;
+  z-index: 1000;
+  box-shadow: var(--shadow-s);
+}
+
+.file-selector-suggestion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--background-modifier-border);
+  transition: background-color 0.15s ease-in-out;
+}
+
+.file-selector-suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.file-selector-suggestion-item:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.file-selector-suggestion-name {
+  font-size: 14px;
+  color: var(--text-normal);
+  font-weight: 500;
+}
+
+.file-selector-suggestion-path {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
