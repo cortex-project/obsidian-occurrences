@@ -89,3 +89,201 @@
   margin-left: 2px;
   width: 100%;
 }
+
+/* ========================================
+   SEARCH BAR COMPONENT
+======================================== */
+
+.search-container {
+  margin: 8px 0;
+}
+
+.search-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  width: 100%;
+  padding: 6px 30px 6px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 0.9em;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.search-input-clear-button {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 2px;
+  background: var(--background-modifier-hover);
+  opacity: 0.7;
+}
+
+.search-input-clear-button:hover {
+  opacity: 1;
+  background: var(--background-modifier-border);
+}
+
+.search-input-clear-button::before {
+  content: "×";
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+/* ========================================
+   FILE SELECTOR COMPONENT
+======================================== */
+
+.file-selector-container {
+  margin: 8px 0;
+  position: relative;
+}
+
+.file-selector-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.file-selector-input {
+  flex: 1;
+  padding: 6px 30px 6px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 0.9em;
+}
+
+.file-selector-input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.file-selector-clear-button {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 2px;
+  background: var(--background-modifier-hover);
+  opacity: 0.7;
+}
+
+.file-selector-clear-button:hover {
+  opacity: 1;
+  background: var(--background-modifier-border);
+}
+
+.file-selector-clear-button::before {
+  content: "×";
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.file-selector-target-button {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.file-selector-target-button:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.file-selector-target-button.is-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+
+.file-selector-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  box-shadow: var(--shadow-s);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 2px;
+}
+
+.file-selector-suggestion {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--background-modifier-border);
+  transition: background-color 0.1s ease;
+}
+
+.file-selector-suggestion:last-child {
+  border-bottom: none;
+}
+
+.file-selector-suggestion:hover,
+.file-selector-suggestion.is-selected {
+  background: var(--background-modifier-hover);
+}
+
+.file-selector-suggestion.current-file-suggestion {
+  background: var(--background-modifier-form-field);
+}
+
+.file-selector-suggestion.current-file-suggestion:hover,
+.file-selector-suggestion.current-file-suggestion.is-selected {
+  background: var(--background-modifier-hover);
+}
+
+.suggestion-title {
+  font-size: 0.9em;
+  color: var(--text-normal);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.suggestion-note {
+  font-size: 0.8em;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggestion-highlight {
+  background: var(--text-selection);
+  font-weight: bold;
+}

@@ -1,21 +1,30 @@
 import CoretexPlugin from "@/main"
 import { ItemView, TFile, WorkspaceLeaf } from "obsidian"
 import { OccurrenceList } from "./occurrenceList"
+import { Header, SearchFilters } from "./header"
 
 export const OCCURRENCES_VIEW = "occurrences-view"
 
 export class OccurrencesView extends ItemView {
   private plugin: CoretexPlugin
   // UI elements
-  private headerEl: HTMLElement
   public contentEl: HTMLElement
 
   // Child components
+  private header: Header
   private occurrenceList: OccurrenceList
   private noOccurrencesEl: HTMLElement
 
   // State
   private currentFile: TFile | null = null
+  private filters: SearchFilters = {
+    search: false,
+    searchQuery: "",
+    fileSelector: false,
+    selectedFilePath: null,
+    isCurrentFileMode: false,
+    inbox: false,
+  }
 
   constructor(leaf: WorkspaceLeaf, plugin: CoretexPlugin) {
     super(leaf)
@@ -40,10 +49,16 @@ export class OccurrencesView extends ItemView {
     container.empty()
     container.addClass("view-container")
 
-    // Create header element
-    this.headerEl = container.createEl("div", {
-      cls: "occurrences-view-header",
-    })
+    // Create header component
+    const headerContainer = container.createEl("div")
+    this.header = new Header(
+      this.app,
+      headerContainer,
+      (filters: SearchFilters) => {
+        this.onFiltersChange(filters)
+      }
+    )
+    this.addChild(this.header)
 
     // Create content element
     this.contentEl = container.createEl("div", {
@@ -93,10 +108,32 @@ export class OccurrencesView extends ItemView {
     this.registerEvent(
       this.app.vault.on("rename", (file: TFile) => {
         if (this.currentFile === file) {
-          // this.editableHeader.setValue(file.basename).enable()
+          // Handle file rename if needed
         }
       })
     )
+  }
+
+  /**
+   * Handle filter changes from the header component
+   */
+  private onFiltersChange(filters: SearchFilters): void {
+    this.filters = filters
+    
+    // Update occurrences based on new filters
+    if (filters.isCurrentFileMode || (!filters.fileSelector && this.currentFile)) {
+      // Show occurrences for current file
+      this.updateOccurrences(this.currentFile)
+    } else if (filters.selectedFilePath) {
+      // Show occurrences for selected file
+      const selectedFile = this.app.vault.getAbstractFileByPath(filters.selectedFilePath)
+      if (selectedFile instanceof TFile) {
+        this.updateOccurrences(selectedFile)
+      }
+    } else {
+      // Clear occurrences when no file is selected
+      this.clearOccurrences()
+    }
   }
 
   /**
@@ -104,46 +141,91 @@ export class OccurrencesView extends ItemView {
    */
   private async handleActiveFileChange(): Promise<void> {
     const activeFile = this.app.workspace.getActiveFile()
-
-    // No active file
-    if (!activeFile) {
-      this.currentFile = null
-      // this.currentObject = null
-      return
-    }
-
     this.currentFile = activeFile
 
-    this.updateOccurrences(activeFile)
+    // If in current file mode or no file selector is active, update occurrences
+    if (this.filters.isCurrentFileMode || !this.filters.fileSelector) {
+      if (activeFile) {
+        this.updateOccurrences(activeFile)
+      } else {
+        this.clearOccurrences()
+      }
+    }
+
+    // Notify header about active file change
+    if (this.header) {
+      this.header.onActiveFileChange()
+    }
+  }
+
+  /**
+   * Clear all occurrences and show the no occurrences message
+   */
+  private clearOccurrences(): void {
+    this.occurrenceList.empty()
+    this.noOccurrencesEl.show()
   }
 
   /**
    * Update the occurrences display for a given file
    * @param file - The file to find inbound occurrence links for
    */
-  private updateOccurrences(file: TFile): void {
+  private updateOccurrences(file: TFile | null): void {
     // Clear existing occurrences
     this.occurrenceList.empty()
     this.noOccurrencesEl.hide()
 
+    if (!file) {
+      this.noOccurrencesEl.show()
+      return
+    }
+
     // Get all inbound links to this file
     const inboundLinks = this.getInboundLinks(file.path)
-    // TODO: Modify so that items are added to the list as they are found rather
-    // than after all links are found
-
+    
     if (inboundLinks.length === 0) {
       this.noOccurrencesEl.show()
       return
     }
 
-    // Add occurrences for each inbound link
+    // Filter and add occurrences
+    let filteredOccurrences = 0
+    
     for (const linkPath of inboundLinks) {
       const occurrence = this.plugin.occurrenceStore.get(linkPath)
-      if (occurrence) {
+      if (occurrence && this.shouldIncludeOccurrence(occurrence)) {
         this.occurrenceList.addItem(occurrence)
+        filteredOccurrences++
       }
-      // Silently skip if occurrence doesn't exist
     }
+
+    if (filteredOccurrences === 0) {
+      this.noOccurrencesEl.show()
+    }
+  }
+
+  /**
+   * Check if an occurrence should be included based on current filters
+   */
+  private shouldIncludeOccurrence(occurrence: any): boolean {
+    // Apply search filter
+    if (this.filters.search && this.filters.searchQuery) {
+      const query = this.filters.searchQuery.toLowerCase()
+      const fileName = occurrence.file?.basename?.toLowerCase() || ""
+      const content = occurrence.content?.toLowerCase() || ""
+      
+      if (!fileName.includes(query) && !content.includes(query)) {
+        return false
+      }
+    }
+
+    // Apply inbox filter
+    if (this.filters.inbox) {
+      // Add logic for inbox filtering if needed
+      // For now, we'll just include all occurrences
+    }
+
+    return true
   }
 
   /**
