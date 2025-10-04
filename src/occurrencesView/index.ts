@@ -25,6 +25,7 @@ export class OccurrencesView extends ItemView {
     search: false,
     searchQuery: "",
     currentFile: false,
+    selectedFile: null,
     inbox: false,
   }
 
@@ -53,7 +54,7 @@ export class OccurrencesView extends ItemView {
     container.addClass("occurrences-view-container")
 
     // Create header element
-    this.header = new Header(container as HTMLElement, filters =>
+    this.header = new Header(container as HTMLElement, this.app, filters =>
       this.handleFilterChange(filters)
     )
     this.addChild(this.header)
@@ -174,9 +175,9 @@ export class OccurrencesView extends ItemView {
       query: this.currentFilters.searchQuery,
     }
 
-    // Apply current file filter if active
-    if (this.currentFilters.currentFile && this.currentActiveFile) {
-      searchOptions.linksTo = this.currentActiveFile.path
+    // Apply file filter if active (either current file mode or manual file selection)
+    if (this.currentFilters.currentFile || this.currentFilters.selectedFile) {
+      searchOptions.linksTo = this.currentFilters.selectedFile
     }
 
     // Apply inbox filter if active
@@ -202,10 +203,10 @@ export class OccurrencesView extends ItemView {
   }
 
   private matchesCurrentFilters(occurrence: OccurrenceObject): boolean {
-    // Apply current file filter if active
-    if (this.currentFilters.currentFile && this.currentActiveFile) {
+    // Apply file filter if active (either current file mode or manual file selection)
+    if (this.currentFilters.currentFile || this.currentFilters.selectedFile) {
       const searchResult = this.occurrenceStore.search({
-        linksTo: this.currentActiveFile.path,
+        linksTo: this.currentFilters.selectedFile,
       })
       if (
         !searchResult.items.some(
@@ -236,11 +237,16 @@ export class OccurrencesView extends ItemView {
     if (newActiveFile !== this.currentActiveFile) {
       this.currentActiveFile = newActiveFile
 
-      // Reload if current file filter is applied
+      // Update the file selector's active file only if it's in current file mode
+      if (this.currentFilters.currentFile) {
+        this.header.updateActiveFile()
+      }
+
+      // Reload if current file mode is active (watching for active file changes)
       if (this.currentFilters.currentFile) {
         this.loadAndRenderOccurrences()
       } else {
-        // Just update highlights if not filtering by current file
+        // Just update highlights if not in current file mode
         this.updateAllActiveStates()
       }
     }
@@ -291,10 +297,11 @@ export class OccurrencesView extends ItemView {
       // Build description based on active filters
       const filterDescriptions: string[] = []
 
-      if (this.currentFilters.currentFile && this.currentActiveFile) {
-        filterDescriptions.push(
-          `linking to "${this.currentActiveFile.basename}"`
-        )
+      if (this.currentFilters.currentFile || this.currentFilters.selectedFile) {
+        const fileName =
+          this.currentFilters.selectedFile.split("/").pop() ||
+          this.currentFilters.selectedFile
+        filterDescriptions.push(`linking to "${fileName}"`)
       }
       if (this.currentFilters.searchQuery) {
         filterDescriptions.push(`matching "${this.currentFilters.searchQuery}"`)
