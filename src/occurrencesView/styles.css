@@ -10,11 +10,16 @@
   position: sticky;
   top: 0;
   z-index: 10;
+<<<<<<< HEAD
+=======
+  border-bottom: 2px solid var(--background-modifier-border);
+>>>>>>> origin/main
 }
 
 .occurrences-view-content {
   overflow-y: auto;
   flex-grow: 1;
+<<<<<<< HEAD
 }
 
 .occurrences-empty-state {
@@ -47,4 +52,7 @@
   font-size: 0.9rem;
   opacity: 0.8;
   font-style: italic;
+=======
+  padding-top: 8px;
+>>>>>>> origin/main
 }

@@ -72,6 +72,7 @@ export class OccurrencesView extends ItemView {
     // Create unified occurrence list
     const occurrencesContainer = this.contentEl.createEl("div", {
       cls: "occurrences-view-content-container",
+      cls: "occurrences-view-content-container",
     })
     this.occurrenceList = new OccurrenceList(
       this.plugin,
