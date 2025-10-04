@@ -89,3 +89,217 @@
   margin-left: 2px;
   width: 100%;
 }
+
+/* ========================================
+    FILE SELECTOR COMPONENT
+======================================== */
+
+.file-selector-container {
+  display: none;
+  margin-top: 8px;
+  position: relative;
+}
+
+.file-selector-input-container {
+  display: flex;
+  align-items: center;
+  background: var(--background-modifier-form-field);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 4px 6px;
+  gap: 6px;
+}
+
+.file-selector-input-container:focus-within {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.file-selector-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.file-selector-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.file-selector-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: var(--text-normal);
+  padding: 4px 0;
+  min-width: 0;
+}
+
+.file-selector-input::placeholder {
+  color: var(--text-muted);
+}
+
+.file-selector-clear-button {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  color: var(--background-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.file-selector-clear-button::before {
+  content: "×";
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.file-selector-clear-button:hover {
+  background: var(--text-normal);
+}
+
+.file-selector-target-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.file-selector-target-button:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.file-selector-target-button.is-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.file-selector-target-button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.file-selector-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  margin-top: 2px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: var(--shadow-s);
+}
+
+.file-selector-suggestion {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.file-selector-suggestion:last-child {
+  border-bottom: none;
+}
+
+.file-selector-suggestion:hover {
+  background: var(--background-modifier-hover);
+}
+
+.file-selector-suggestion-name {
+  font-size: 14px;
+  color: var(--text-normal);
+  line-height: 1.2;
+}
+
+.file-selector-suggestion-path {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+.file-selector-no-results {
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ========================================
+    SEARCH BAR COMPONENT
+======================================== */
+
+.search-container {
+  display: none;
+  margin-top: 8px;
+}
+
+.search-input-container {
+  display: flex;
+  align-items: center;
+  background: var(--background-modifier-form-field);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  gap: 6px;
+}
+
+.search-input-container:focus-within {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: var(--text-normal);
+  padding: 4px 0;
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-input-clear-button {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  color: var(--background-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.search-input-clear-button::before {
+  content: "×";
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.search-input-clear-button:hover {
+  background: var(--text-normal);
+}

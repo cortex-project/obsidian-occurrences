@@ -1,6 +1,7 @@
 import CoretexPlugin from "@/main"
 import { ItemView, TFile, WorkspaceLeaf } from "obsidian"
 import { OccurrenceList } from "./occurrenceList"
+import { Header, SearchFilters } from "./header"
 
 export const OCCURRENCES_VIEW = "occurrences-view"
 
@@ -11,11 +12,21 @@ export class OccurrencesView extends ItemView {
   public contentEl: HTMLElement
 
   // Child components
+  private header: Header
   private occurrenceList: OccurrenceList
   private noOccurrencesEl: HTMLElement
 
   // State
   private currentFile: TFile | null = null
+  private currentFilters: SearchFilters = {
+    search: false,
+    searchQuery: "",
+    currentFile: false,
+    inbox: false,
+    linksTo: false,
+    linksToFile: null,
+    linksToIsCurrentFile: false,
+  }
 
   constructor(leaf: WorkspaceLeaf, plugin: CoretexPlugin) {
     super(leaf)
@@ -42,8 +53,18 @@ export class OccurrencesView extends ItemView {
 
     // Create header element
     this.headerEl = container.createEl("div", {
-      cls: "occurrences-view-header",
+      cls: "occurrences-view-header-container",
     })
+
+    // Create header component
+    this.header = new Header(
+      this.app,
+      this.headerEl,
+      (filters: SearchFilters) => {
+        this.handleFilterChange(filters)
+      }
+    )
+    this.addChild(this.header)
 
     // Create content element
     this.contentEl = container.createEl("div", {
@@ -100,6 +121,31 @@ export class OccurrencesView extends ItemView {
   }
 
   /**
+   * Handle filter changes from the header
+   */
+  private handleFilterChange(filters: SearchFilters): void {
+    this.currentFilters = { ...filters }
+    
+    // Determine which file to get occurrences for
+    let targetFile: TFile | null = null
+    
+    if (filters.linksTo && filters.linksToFile) {
+      // Use the selected links to file
+      targetFile = filters.linksToFile
+    } else if (filters.currentFile || (!filters.linksTo && this.currentFile)) {
+      // Use current active file
+      targetFile = this.currentFile
+    }
+    
+    if (targetFile) {
+      this.updateOccurrences(targetFile)
+    } else {
+      this.occurrenceList.empty()
+      this.noOccurrencesEl.show()
+    }
+  }
+
+  /**
    * Handle when the active file changes in the workspace
    */
   private async handleActiveFileChange(): Promise<void> {
@@ -108,13 +154,21 @@ export class OccurrencesView extends ItemView {
     // No active file
     if (!activeFile) {
       this.currentFile = null
-      // this.currentObject = null
+      // If no active file and current file filter is on, clear occurrences
+      if (this.currentFilters.currentFile) {
+        this.occurrenceList.empty()
+        this.noOccurrencesEl.show()
+      }
       return
     }
 
     this.currentFile = activeFile
 
-    this.updateOccurrences(activeFile)
+    // If current file filter is active or no specific links to file selected, update occurrences
+    if (this.currentFilters.currentFile || 
+        (!this.currentFilters.linksTo || !this.currentFilters.linksToFile)) {
+      this.updateOccurrences(activeFile)
+    }
   }
 
   /**
@@ -128,21 +182,55 @@ export class OccurrencesView extends ItemView {
 
     // Get all inbound links to this file
     const inboundLinks = this.getInboundLinks(file.path)
-    // TODO: Modify so that items are added to the list as they are found rather
-    // than after all links are found
 
     if (inboundLinks.length === 0) {
       this.noOccurrencesEl.show()
       return
     }
 
+    let filteredOccurrences = []
+
     // Add occurrences for each inbound link
     for (const linkPath of inboundLinks) {
       const occurrence = this.plugin.occurrenceStore.get(linkPath)
       if (occurrence) {
-        this.occurrenceList.addItem(occurrence)
+        // Apply filters
+        let includeOccurrence = true
+
+        // Apply search filter
+        if (this.currentFilters.search && this.currentFilters.searchQuery) {
+          const query = this.currentFilters.searchQuery.toLowerCase()
+          const searchText = `${occurrence.title} ${occurrence.content || ""}`.toLowerCase()
+          if (!searchText.includes(query)) {
+            includeOccurrence = false
+          }
+        }
+
+        // Apply inbox filter
+        if (this.currentFilters.inbox) {
+          // Assuming occurrences have some inbox property or tag
+          // You may need to adjust this based on your data structure
+          const hasInboxTag = occurrence.tags?.includes("inbox") || 
+                              occurrence.frontmatter?.inbox === true
+          if (!hasInboxTag) {
+            includeOccurrence = false
+          }
+        }
+
+        if (includeOccurrence) {
+          filteredOccurrences.push(occurrence)
+        }
       }
-      // Silently skip if occurrence doesn't exist
+    }
+
+    if (filteredOccurrences.length === 0) {
+      this.noOccurrencesEl.show()
+      return
+    }
+
+    // Add filtered occurrences to the list
+    for (const occurrence of filteredOccurrences) {
+      this.occurrenceList.addItem(occurrence)
     }
   }
 
