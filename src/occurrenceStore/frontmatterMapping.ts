@@ -1,6 +1,4 @@
 import { OccurrenceObject } from "@/types"
-import { TFile } from "obsidian"
-import { toISOStringWithTimezone } from "./dateUtils"
 
 /**
  * Configuration for mapping interface properties to frontmatter field names
@@ -41,7 +39,21 @@ function transformValueForFrontmatter(key: string, value: any): any {
 
   // Handle Date objects - convert to ISO string with timezone
   if (value instanceof Date) {
-    return toISOStringWithTimezone(value)
+    const localISOTime = new Date(
+      value.getTime() - value.getTimezoneOffset() * 60000
+    )
+      .toISOString()
+      .slice(0, -1)
+
+    const offset = value.getTimezoneOffset()
+    const offsetHours = Math.floor(Math.abs(offset) / 60)
+    const offsetMinutes = Math.abs(offset) % 60
+    const offsetSign = offset <= 0 ? "+" : "-"
+    const offsetString = `${offsetSign}${offsetHours
+      .toString()
+      .padStart(2, "0")}:${offsetMinutes.toString().padStart(2, "0")}`
+
+    return localISOTime + offsetString
   }
 
   // Handle arrays of objects (like links) - convert to string format
@@ -137,53 +149,4 @@ export function applyFrontmatterUpdates<T extends OccurrenceObject>(
       }
     }
   }
-}
-
-/**
- * Generic function to parse frontmatter using a property mapping
- */
-export function parseFrontmatterToObject<T extends OccurrenceObject>(
-  frontmatter: any,
-  file: TFile,
-  propertyMapping: Record<string, string>
-): Partial<T> {
-  const result: any = {
-    ...frontmatter, // Include all frontmatter properties first
-    file,
-    title: file.basename,
-  }
-
-  // Apply reverse mapping for known properties
-  for (const [interfaceProperty, frontmatterField] of Object.entries(
-    propertyMapping
-  )) {
-    if (frontmatter[frontmatterField] !== undefined) {
-      result[interfaceProperty] = frontmatter[frontmatterField]
-    }
-  }
-
-  return result
-}
-
-/**
- * Check if a property should be excluded from frontmatter processing
- */
-export function shouldExcludeFromFrontmatter(
-  propertyKey: string,
-  propertyMapping: Record<string, string>
-): boolean {
-  const isInterfaceOnlyProperty = INTERFACE_ONLY_PROPERTIES.has(
-    propertyKey as keyof OccurrenceObject
-  )
-  const isComputedProperty = COMPUTED_PROPERTIES.has(propertyKey)
-  const isMappedProperty = Object.keys(propertyMapping).includes(propertyKey)
-  const isFrontmatterFieldName =
-    Object.values(propertyMapping).includes(propertyKey)
-
-  return (
-    isInterfaceOnlyProperty ||
-    isComputedProperty ||
-    isMappedProperty ||
-    isFrontmatterFieldName
-  )
 }

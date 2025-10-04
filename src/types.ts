@@ -12,12 +12,9 @@ export interface ObsidianLink {
   vault?: string // For URI links
 }
 
-export interface ObjectProperties {
+export interface OccurrenceProperties {
   types?: string[]
   tags?: string[]
-}
-
-export interface OccurrenceProperties extends ObjectProperties {
   occurredAt: Date
   toProcess: boolean
   participants: ObsidianLink[]

@@ -148,6 +148,8 @@ export class ListGroup<T = any> extends Component {
     const index = this.listItems.indexOf(item)
     if (index > -1) {
       this.listItems.splice(index, 1)
+      // Add this line to actually remove the DOM element:
+      item.getContainerEl().remove()
       this.updateCount()
     }
     return this

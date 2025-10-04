@@ -10,11 +10,49 @@
   position: sticky;
   top: 0;
   z-index: 10;
+<<<<<<< HEAD
+=======
   border-bottom: 2px solid var(--background-modifier-border);
+>>>>>>> origin/main
 }
 
 .occurrences-view-content {
   overflow-y: auto;
   flex-grow: 1;
+<<<<<<< HEAD
+}
+
+.occurrences-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--text-muted);
+  min-height: 200px;
+}
+
+.empty-state-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-normal);
+  text-align: center;
+}
+
+.empty-state-message {
+  margin: 0 0 1rem 0;
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+.empty-state-suggestion {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  font-style: italic;
+=======
   padding-top: 8px;
+>>>>>>> origin/main
 }
