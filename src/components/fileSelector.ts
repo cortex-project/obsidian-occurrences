@@ -261,14 +261,35 @@ export class FileSelector extends Component {
         attr: { "data-index": index.toString() },
       })
 
+      // Determine display name - show extension if not .md
+      let displayName = suggestion.displayName
+      if (suggestion.displayName !== "Current Active File") {
+        const file = suggestion.file
+        if (file.extension !== "md") {
+          displayName = file.basename + "." + file.extension
+        } else {
+          displayName = file.basename
+        }
+      }
+
+      // Determine path - show only directory path without filename
+      let pathText = ""
+      if (suggestion.displayName !== "Current Active File") {
+        const pathParts = suggestion.fullPath.split("/")
+        pathParts.pop() // Remove the filename
+        pathText = pathParts.join("/") + "/"
+      } else {
+        pathText = suggestion.fullPath
+      }
+
       const fileName = suggestionEl.createEl("div", {
         cls: "file-suggestion-name",
-        text: suggestion.displayName,
+        text: displayName,
       })
 
       const filePath = suggestionEl.createEl("div", {
         cls: "file-suggestion-path",
-        text: suggestion.fullPath,
+        text: pathText,
       })
 
       // Add click handler using registerDomEvent for proper cleanup
