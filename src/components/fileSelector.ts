@@ -61,18 +61,6 @@ export class FileSelector extends Component {
     })
     this.fileContainer.style.display = "none"
 
-    // Create target button (outside input container)
-    this.targetButton = this.fileContainer.createEl("div", {
-      cls: "clickable-icon nav-action-button",
-      attr: { id: "target-file" },
-    })
-    setIcon(this.targetButton, "target")
-    setTooltip(this.targetButton, "Select Current Active File")
-
-    this.registerDomEvent(this.targetButton, "click", () => {
-      this.toggleCurrentFileMode()
-    })
-
     // Create file input container (using custom classes)
     this.fileInputContainer = this.fileContainer.createEl("div", {
       cls: "file-input-container",
@@ -84,8 +72,13 @@ export class FileSelector extends Component {
     })
     setIcon(linkIcon, "link")
 
+    // Create input wrapper for positioning
+    const inputWrapper = this.fileInputContainer.createEl("div", {
+      cls: "file-input-wrapper",
+    })
+
     // Create file input
-    this.fileInput = this.fileInputContainer.createEl("input", {
+    this.fileInput = inputWrapper.createEl("input", {
       type: "text",
       placeholder: this.options.placeholder!,
       attr: {
@@ -95,14 +88,26 @@ export class FileSelector extends Component {
     }) as HTMLInputElement
     this.fileInput.classList.add("file-input")
 
-    // Create clear button (using Obsidian's exact class)
-    this.fileClear = this.fileInputContainer.createEl("div", {
+    // Create clear button (as child of input wrapper)
+    this.fileClear = inputWrapper.createEl("div", {
       cls: "search-input-clear-button",
       attr: {
         "aria-label": "Clear file selection",
       },
     })
     this.fileClear.style.display = "none"
+
+    // Create target button (inside input container, to the right)
+    this.targetButton = this.fileInputContainer.createEl("div", {
+      cls: "clickable-icon nav-action-button file-target-button",
+      attr: { id: "target-file" },
+    })
+    setIcon(this.targetButton, "target")
+    setTooltip(this.targetButton, "Select Current Active File")
+
+    this.registerDomEvent(this.targetButton, "click", () => {
+      this.toggleCurrentFileMode()
+    })
 
     // Create suggestions container
     this.suggestionsContainer = this.fileContainer.createEl("div", {
