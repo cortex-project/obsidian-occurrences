@@ -61,13 +61,8 @@ export class FileSelector extends Component {
     })
     this.fileContainer.style.display = "none"
 
-    // Create file input container
-    this.fileInputContainer = this.fileContainer.createEl("div", {
-      cls: "file-input-container",
-    })
-
-    // Create target button
-    this.targetButton = this.fileInputContainer.createEl("div", {
+    // Create target button (outside input container)
+    this.targetButton = this.fileContainer.createEl("div", {
       cls: "clickable-icon nav-action-button",
       attr: { id: "target-file" },
     })
@@ -77,6 +72,17 @@ export class FileSelector extends Component {
     this.registerDomEvent(this.targetButton, "click", () => {
       this.toggleCurrentFileMode()
     })
+
+    // Create file input container (using custom classes)
+    this.fileInputContainer = this.fileContainer.createEl("div", {
+      cls: "file-input-container",
+    })
+
+    // Create link icon
+    const linkIcon = this.fileInputContainer.createEl("div", {
+      cls: "file-input-icon",
+    })
+    setIcon(linkIcon, "link")
 
     // Create file input
     this.fileInput = this.fileInputContainer.createEl("input", {
@@ -89,14 +95,13 @@ export class FileSelector extends Component {
     }) as HTMLInputElement
     this.fileInput.classList.add("file-input")
 
-    // Create clear button
+    // Create clear button (using Obsidian's exact class)
     this.fileClear = this.fileInputContainer.createEl("div", {
-      cls: "file-input-clear-button",
+      cls: "search-input-clear-button",
       attr: {
         "aria-label": "Clear file selection",
       },
     })
-    setIcon(this.fileClear, "x")
     this.fileClear.style.display = "none"
 
     // Create suggestions container
@@ -136,6 +141,8 @@ export class FileSelector extends Component {
 
     // Add clear button event listener
     this.registerDomEvent(this.fileClear, "click", () => {
+      this.fileInput.value = ""
+      this.fileClear.style.display = "none"
       this.clearSelection()
     })
 
@@ -169,11 +176,11 @@ export class FileSelector extends Component {
       // Show actual filename instead of "Current Active File"
       if (this.currentActiveFile) {
         this.fileInput.value = this.currentActiveFile.basename
-        this.fileClear.style.display = "flex"
+        this.updateClearButton(this.fileInput.value)
         this.onFileChange(this.currentActiveFile.path, false)
       } else {
         this.fileInput.value = ""
-        this.fileClear.style.display = "none"
+        this.updateClearButton(this.fileInput.value)
         this.onFileChange(null, false)
       }
     } else {
@@ -183,7 +190,7 @@ export class FileSelector extends Component {
       this.updateCurrentActiveFile()
       if (this.currentActiveFile) {
         this.fileInput.value = "Current Active File"
-        this.fileClear.style.display = "flex"
+        this.updateClearButton(this.fileInput.value)
         this.onFileChange(this.currentActiveFile.path, true)
       }
     }
@@ -289,7 +296,7 @@ export class FileSelector extends Component {
       this.selectedFile = suggestion.file
 
       this.fileInput.value = "Current Active File"
-      this.fileClear.style.display = "flex"
+      this.updateClearButton(this.fileInput.value)
       this.hideSuggestions()
 
       this.onFileChange(suggestion.file.path, true)
@@ -300,7 +307,7 @@ export class FileSelector extends Component {
       this.targetButton.removeClass("is-active")
 
       this.fileInput.value = suggestion.displayName
-      this.fileClear.style.display = "flex"
+      this.updateClearButton(this.fileInput.value)
       this.hideSuggestions()
 
       this.onFileChange(suggestion.file.path, false)
@@ -369,7 +376,7 @@ export class FileSelector extends Component {
    */
   private clearSelection(): void {
     this.fileInput.value = ""
-    this.fileClear.style.display = "none"
+    this.updateClearButton(this.fileInput.value)
     this.selectedFile = null
     this.isCurrentFileMode = false
     this.targetButton.removeClass("is-active")
@@ -402,7 +409,7 @@ export class FileSelector extends Component {
    */
   public clearInput(): void {
     this.fileInput.value = ""
-    this.fileClear.style.display = "none"
+    this.updateClearButton(this.fileInput.value)
     this.selectedFile = null
     this.isCurrentFileMode = false
     this.targetButton.removeClass("is-active")
@@ -448,6 +455,7 @@ export class FileSelector extends Component {
     this.updateCurrentActiveFile()
     if (this.isCurrentFileMode && this.currentActiveFile) {
       this.fileInput.value = "Current Active File"
+      this.updateClearButton(this.fileInput.value)
       this.onFileChange(this.currentActiveFile.path, true)
     }
   }

@@ -96,46 +96,87 @@
 
 .file-container {
   position: relative;
-}
-
-.file-input-container {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
+/* Custom file input container - replicates search-input-container */
+.file-input-container {
+  position: relative;
+  margin: 4px auto;
+  padding: 0;
+}
+
+/* Custom file input - replicates search-input */
 .file-input {
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 4px;
-  background: var(--background-primary);
+  display: block;
+  width: 100%;
+  height: var(--input-height);
+  -webkit-app-region: no-drag;
+  background: var(--background-modifier-form-field);
+  border: var(--input-border-width) solid var(--background-modifier-border);
   color: var(--text-normal);
-  font-size: 0.9rem;
-}
-
-.file-input:focus {
+  font-family: inherit;
+  padding: var(--input-padding);
+  padding-left: 36px !important;
+  padding-right: 28px !important;
+  font-size: var(--font-ui-small);
+  border-radius: var(--input-radius);
   outline: none;
-  border-color: var(--interactive-accent);
-  box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+  flex-grow: 1;
+  margin-right: 8px;
+  unicode-bidi: plaintext;
 }
 
-.file-input-clear-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--background-modifier-border);
+/* Custom file input icon - positioned like search icon */
+.file-input-icon {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
   color: var(--text-muted);
-  cursor: pointer;
+  z-index: 1;
+  pointer-events: none;
 }
 
-.file-input-clear-button:hover {
-  background: var(--background-modifier-border-hover);
-  color: var(--text-normal);
+.file-input-icon svg {
+  width: 1.2em;
+  height: 1.2em;
 }
+
+/* Custom clear button - replicates search-input-clear-button */
+.file-input-clear-button {
+  position: absolute;
+  background: transparent;
+  border-radius: 50%;
+  color: var(--search-clear-button-color);
+  cursor: var(--cursor);
+  top: 0px;
+  inset-inline-end: 2px;
+  bottom: 0px;
+  line-height: 0;
+  height: var(--input-height);
+  width: 28px;
+  margin: auto;
+  padding: 0 0;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: color var(--anim-duration-fast) ease-in-out;
+  z-index: 2;
+}
+
+/* Add X icon using CSS pseudo-element */
+.file-input-clear-button::before {
+  content: "✕";
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 1;
+}
+
+/* Clear button visibility is controlled by JavaScript */
 
 .file-suggestions-container {
   position: absolute;
