@@ -58,7 +58,7 @@ export class Header extends Component {
     setIcon(this.searchButton, "search")
     setTooltip(this.searchButton, "Toggle Search")
 
-    this.searchButton.addEventListener("click", () => {
+    this.registerDomEvent(this.searchButton, "click", () => {
       this.toggleFilter("search")
     })
 
@@ -84,7 +84,7 @@ export class Header extends Component {
     setIcon(this.fileSelectorButton, "link")
     setTooltip(this.fileSelectorButton, "Toggle File Selector")
 
-    this.fileSelectorButton.addEventListener("click", () => {
+    this.registerDomEvent(this.fileSelectorButton, "click", () => {
       this.toggleFilter("currentFile")
     })
 
@@ -112,7 +112,7 @@ export class Header extends Component {
     setIcon(this.inboxButton, "inbox")
     setTooltip(this.inboxButton, "Toggle Inbox")
 
-    this.inboxButton.addEventListener("click", () => {
+    this.registerDomEvent(this.inboxButton, "click", () => {
       this.toggleFilter("inbox")
     })
 

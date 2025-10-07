@@ -66,14 +66,14 @@ export class SearchBar extends Component {
     this.searchClear.style.display = "none"
 
     // Add input event listener
-    this.searchInput.addEventListener("input", e => {
+    this.registerDomEvent(this.searchInput, "input", e => {
       const target = e.target as HTMLInputElement
       this.updateClearButton(target.value)
       this.debouncedSearchChange(target.value)
     })
 
     // Add clear button event listener
-    this.searchClear.addEventListener("click", () => {
+    this.registerDomEvent(this.searchClear, "click", () => {
       this.searchInput.value = ""
       this.searchClear.style.display = "none"
       this.debouncedSearchChange("")

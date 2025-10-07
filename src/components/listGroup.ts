@@ -86,7 +86,7 @@ export class ListGroup<T = any> extends Component {
       }
 
       // Add click handler for toggling
-      this.headerContainer.addEventListener("click", e => {
+      this.registerDomEvent(this.headerContainer, "click", e => {
         // Don't toggle if clicking on buttons
         if (
           e.target &&
@@ -190,7 +190,7 @@ export class ListGroup<T = any> extends Component {
     setIcon(button, icon)
     setTooltip(button, tooltip)
 
-    button.addEventListener("click", e => {
+    this.registerDomEvent(button, "click", e => {
       e.stopPropagation()
       onClick()
     })

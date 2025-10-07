@@ -62,7 +62,7 @@ export class OccurrenceListItem extends ListItem<OccurrenceObject> {
     containerEl.removeEventListener("click", this.handleClick)
 
     // Open file on click using Obsidian's native link handling
-    containerEl.addEventListener("click", (event: MouseEvent) => {
+    this.registerDomEvent(containerEl, "click", (event: MouseEvent) => {
       // Prevent default to avoid any unwanted behavior
       event.preventDefault()
 
@@ -71,7 +71,7 @@ export class OccurrenceListItem extends ListItem<OccurrenceObject> {
     })
 
     // Add hover preview functionality
-    containerEl.addEventListener("mouseover", (event: MouseEvent) => {
+    this.registerDomEvent(containerEl, "mouseover", (event: MouseEvent) => {
       this.app.workspace.trigger("hover-link", {
         event: event,
         source: "file-explorer",
@@ -201,7 +201,8 @@ export class OccurrenceListItem extends ListItem<OccurrenceObject> {
     })
 
     // Add context menu
-    this.getContainerEl().addEventListener(
+    this.registerDomEvent(
+      this.getContainerEl(),
       "contextmenu",
       (event: MouseEvent) => {
         event.preventDefault()

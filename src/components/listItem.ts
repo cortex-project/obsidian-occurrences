@@ -34,7 +34,7 @@ export class ListItem<T = string> extends Component {
 
     // Add click handler if provided
     if (onClick) {
-      this.containerEl.addEventListener("click", (event: MouseEvent) => {
+      this.registerDomEvent(this.containerEl, "click", (event: MouseEvent) => {
         event.preventDefault()
         onClick(item)
       })
@@ -141,7 +141,7 @@ export class ListItem<T = string> extends Component {
     setIcon(buttonEl, icon)
     setTooltip(buttonEl, tooltip)
 
-    buttonEl.addEventListener("click", event => {
+    this.registerDomEvent(buttonEl, "click", event => {
       event.stopPropagation()
       onClick(this.item, event)
     })
