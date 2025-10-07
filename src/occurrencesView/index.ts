@@ -206,7 +206,7 @@ export class OccurrencesView extends ItemView {
     // Apply file filter if active (either current file mode or manual file selection)
     if (this.currentFilters.currentFile || this.currentFilters.selectedFile) {
       const searchResult = this.occurrenceStore.search({
-        linksTo: this.currentFilters.selectedFile,
+        linksTo: this.currentFilters.selectedFile || undefined,
       })
       if (
         !searchResult.items.some(
@@ -299,7 +299,7 @@ export class OccurrencesView extends ItemView {
 
       if (this.currentFilters.currentFile || this.currentFilters.selectedFile) {
         const fileName =
-          this.currentFilters.selectedFile.split("/").pop() ||
+          this.currentFilters.selectedFile?.split("/").pop() ||
           this.currentFilters.selectedFile
         filterDescriptions.push(`linking to "${fileName}"`)
       }
