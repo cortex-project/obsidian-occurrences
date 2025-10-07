@@ -168,7 +168,7 @@ export class FileSelector extends Component {
 
       // Show actual filename instead of "Current Active File"
       if (this.currentActiveFile) {
-        this.fileInput.value = this.currentActiveFile.name
+        this.fileInput.value = this.currentActiveFile.basename
         this.fileClear.style.display = "flex"
         this.onFileChange(this.currentActiveFile.path, false)
       } else {
@@ -210,7 +210,7 @@ export class FileSelector extends Component {
       .slice(0, 10) // Limit to 10 suggestions
       .map((file: TFile) => ({
         file,
-        displayName: file.name,
+        displayName: file.basename,
         fullPath: file.path,
       }))
 
