@@ -1,32 +1,38 @@
-import { SearchBar } from "@/components"
-import { Component, setIcon, setTooltip } from "obsidian"
+import { FileSelector, SearchBar } from "@/components"
+import { App, Component, setIcon, setTooltip } from "obsidian"
 
 export interface SearchFilters {
   search: boolean
   searchQuery: string
   currentFile: boolean
+  selectedFile: string | null
   inbox: boolean
 }
 
 export class Header extends Component {
   private headerEl: HTMLElement
-  private currentFileButton: HTMLElement
+  private fileSelectorButton: HTMLElement
   private searchButton: HTMLElement
   private inboxButton: HTMLElement
   private searchBar: SearchBar
+  private fileSelector: FileSelector
   private onFilterChange: (filters: SearchFilters) => void
+  private app: App
   private filters: SearchFilters = {
     search: false,
     searchQuery: "",
     currentFile: false,
+    selectedFile: null,
     inbox: false,
   }
 
   constructor(
     container: HTMLElement,
+    app: App,
     onFilterChange: (filters: SearchFilters) => void
   ) {
     super()
+    this.app = app
     this.headerEl = container.createEl("div", {
       cls: "occurrences-view-header",
     })
@@ -70,17 +76,33 @@ export class Header extends Component {
     )
     this.addChild(this.searchBar)
 
-    // Current file button
-    this.currentFileButton = buttonsContainer.createEl("div", {
+    // File selector button
+    this.fileSelectorButton = buttonsContainer.createEl("div", {
       cls: "clickable-icon nav-action-button",
-      attr: { id: "current-file" },
+      attr: { id: "file-selector" },
     })
-    setIcon(this.currentFileButton, "crosshair")
-    setTooltip(this.currentFileButton, "Toggle Current File Filter")
+    setIcon(this.fileSelectorButton, "link")
+    setTooltip(this.fileSelectorButton, "Toggle File Selector")
 
-    this.currentFileButton.addEventListener("click", () => {
+    this.fileSelectorButton.addEventListener("click", () => {
       this.toggleFilter("currentFile")
     })
+
+    // Create file selector component
+    this.fileSelector = new FileSelector(
+      navHeader,
+      this.app,
+      (filePath: string | null, isCurrentFile: boolean) => {
+        this.filters.selectedFile = filePath
+        this.filters.currentFile = isCurrentFile
+        this.onFilterChange({ ...this.filters })
+      },
+      {
+        placeholder: "Linking to...",
+        debounceMs: 300,
+      }
+    )
+    this.addChild(this.fileSelector)
 
     // Inbox button
     this.inboxButton = buttonsContainer.createEl("div", {
@@ -101,7 +123,7 @@ export class Header extends Component {
    * Toggle a specific filter
    */
   private toggleFilter(
-    filterKey: Exclude<keyof SearchFilters, "searchQuery">
+    filterKey: Exclude<keyof SearchFilters, "searchQuery" | "selectedFile">
   ): void {
     this.filters[filterKey] = !this.filters[filterKey]
 
@@ -112,6 +134,17 @@ export class Header extends Component {
       } else {
         this.searchBar.hide()
         this.filters.searchQuery = ""
+      }
+    }
+
+    // Handle file selector visibility
+    if (filterKey === "currentFile") {
+      if (this.filters.currentFile) {
+        this.fileSelector.show()
+      } else {
+        this.fileSelector.hide()
+        this.fileSelector.clearInput()
+        this.filters.selectedFile = null
       }
     }
 
@@ -130,11 +163,11 @@ export class Header extends Component {
       this.searchButton.removeClass("is-active")
     }
 
-    // Update current file button
+    // Update file selector button
     if (this.filters.currentFile) {
-      this.currentFileButton.addClass("is-active")
+      this.fileSelectorButton.addClass("is-active")
     } else {
-      this.currentFileButton.removeClass("is-active")
+      this.fileSelectorButton.removeClass("is-active")
     }
 
     // Update inbox button
@@ -150,6 +183,13 @@ export class Header extends Component {
    */
   public getFilters(): SearchFilters {
     return { ...this.filters }
+  }
+
+  /**
+   * Update active file in file selector
+   */
+  public updateActiveFile(): void {
+    this.fileSelector.updateActiveFile()
   }
 
   public getElement(): HTMLElement {
