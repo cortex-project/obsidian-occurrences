@@ -74,7 +74,7 @@ export class FileSelector extends Component {
     setIcon(this.targetButton, "target")
     setTooltip(this.targetButton, "Select Current Active File")
 
-    this.targetButton.addEventListener("click", () => {
+    this.registerDomEvent(this.targetButton, "click", () => {
       this.toggleCurrentFileMode()
     })
 
@@ -110,37 +110,37 @@ export class FileSelector extends Component {
     })
 
     // Add input event listeners
-    this.fileInput.addEventListener("input", e => {
+    this.registerDomEvent(this.fileInput, "input", e => {
       const target = e.target as HTMLInputElement
       this.updateClearButton(target.value)
       this.debouncedSearchChange(target.value)
     })
 
-    this.fileInput.addEventListener("focus", () => {
+    this.registerDomEvent(this.fileInput, "focus", () => {
       this.showSuggestions()
       if (this.fileInput.value === "") {
         this.showCurrentFileSuggestion()
       }
     })
 
-    this.fileInput.addEventListener("blur", () => {
+    this.registerDomEvent(this.fileInput, "blur", () => {
       // Delay hiding to allow clicking on suggestions
       setTimeout(() => {
         this.hideSuggestions()
       }, 200)
     })
 
-    this.fileInput.addEventListener("keydown", e => {
+    this.registerDomEvent(this.fileInput, "keydown", e => {
       this.handleKeydown(e)
     })
 
     // Add clear button event listener
-    this.fileClear.addEventListener("click", () => {
+    this.registerDomEvent(this.fileClear, "click", () => {
       this.clearSelection()
     })
 
     // Add suggestions click listeners
-    this.suggestionsList.addEventListener("click", e => {
+    this.registerDomEvent(this.suggestionsList, "click", e => {
       const target = e.target as HTMLElement
       const suggestionEl = target.closest(".file-suggestion")
       if (suggestionEl) {
@@ -264,8 +264,8 @@ export class FileSelector extends Component {
         text: suggestion.fullPath,
       })
 
-      // Add click handler
-      suggestionEl.addEventListener("click", () => {
+      // Add click handler using registerDomEvent for proper cleanup
+      this.registerDomEvent(suggestionEl, "click", () => {
         this.selectSuggestion(index)
       })
     })
