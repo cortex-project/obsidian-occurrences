@@ -1,4 +1,4 @@
-import { FileSelector, SearchBar } from "@/components"
+import { FileSelector, SearchBar, TagSelector } from "@/components"
 import { App, Component, setIcon, setTooltip } from "obsidian"
 
 export interface SearchFilters {
@@ -7,15 +7,19 @@ export interface SearchFilters {
   currentFile: boolean
   selectedFile: string | null
   inbox: boolean
+  tags: boolean
+  selectedTags: string[]
 }
 
 export class Header extends Component {
   private headerEl: HTMLElement
   private fileSelectorButton: HTMLElement
   private searchButton: HTMLElement
+  private tagButton: HTMLElement
   private inboxButton: HTMLElement
   private searchBar: SearchBar
   private fileSelector: FileSelector
+  private tagSelector: TagSelector
   private onFilterChange: (filters: SearchFilters) => void
   private app: App
   private filters: SearchFilters = {
@@ -24,6 +28,8 @@ export class Header extends Component {
     currentFile: false,
     selectedFile: null,
     inbox: false,
+    tags: false,
+    selectedTags: [],
   }
 
   constructor(
@@ -104,6 +110,33 @@ export class Header extends Component {
     )
     this.addChild(this.fileSelector)
 
+    // Tag button
+    this.tagButton = buttonsContainer.createEl("div", {
+      cls: "clickable-icon nav-action-button",
+      attr: { id: "tag-selector" },
+    })
+    setIcon(this.tagButton, "tags")
+    setTooltip(this.tagButton, "Toggle Tag Filter")
+
+    this.registerDomEvent(this.tagButton, "click", () => {
+      this.toggleFilter("tags")
+    })
+
+    // Create tag selector component
+    this.tagSelector = new TagSelector(
+      navHeader,
+      this.app,
+      (tags: string[]) => {
+        this.filters.selectedTags = tags
+        this.onFilterChange({ ...this.filters })
+      },
+      {
+        placeholder: "Empty",
+        debounceMs: 300,
+      }
+    )
+    this.addChild(this.tagSelector)
+
     // Inbox button
     this.inboxButton = buttonsContainer.createEl("div", {
       cls: "clickable-icon nav-action-button",
@@ -123,7 +156,10 @@ export class Header extends Component {
    * Toggle a specific filter
    */
   private toggleFilter(
-    filterKey: Exclude<keyof SearchFilters, "searchQuery" | "selectedFile">
+    filterKey: Exclude<
+      keyof SearchFilters,
+      "searchQuery" | "selectedFile" | "selectedTags"
+    >
   ): void {
     this.filters[filterKey] = !this.filters[filterKey]
 
@@ -148,6 +184,17 @@ export class Header extends Component {
       }
     }
 
+    // Handle tag selector visibility
+    if (filterKey === "tags") {
+      if (this.filters.tags) {
+        this.tagSelector.show()
+      } else {
+        this.tagSelector.hide()
+        this.tagSelector.clearInput()
+        this.filters.selectedTags = []
+      }
+    }
+
     this.updateButtonStates()
     this.onFilterChange({ ...this.filters })
   }
@@ -168,6 +215,13 @@ export class Header extends Component {
       this.fileSelectorButton.addClass("is-active")
     } else {
       this.fileSelectorButton.removeClass("is-active")
+    }
+
+    // Update tag button
+    if (this.filters.tags) {
+      this.tagButton.addClass("is-active")
+    } else {
+      this.tagButton.removeClass("is-active")
     }
 
     // Update inbox button

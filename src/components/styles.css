@@ -233,3 +233,199 @@
   color: var(--text-muted);
   font-size: var(--font-ui-smaller);
 }
+
+/* ========================================
+   TAG SELECTOR COMPONENTS
+======================================== */
+
+.tag-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+}
+
+/* Custom tag input container - replicates search-input-container */
+.tag-input-container {
+  position: relative;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  background: var(--background-modifier-form-field);
+  border: var(--input-border-width) solid var(--background-modifier-border);
+  border-radius: var(--input-radius);
+  cursor: text;
+  transition: border-color var(--anim-duration-fast) ease-in-out;
+}
+
+.tag-input-container:focus-within {
+  border-color: var(--interactive-accent);
+}
+
+/* Input wrapper for positioning clear button and selected tags */
+.tag-input-wrapper {
+  position: relative;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px 8px 4px 36px;
+  min-height: var(--input-height);
+  height: var(--input-height);
+  overflow: hidden;
+}
+
+/* When tags wrap to multiple lines, allow height to grow */
+.tag-input-wrapper.has-wrapped-tags {
+  height: auto;
+  align-items: flex-start;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+/* Selected tags container */
+.selected-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+/* Tag pill styling */
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--tag-background);
+  color: var(--tag-color);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: var(--font-ui-smaller);
+  gap: 4px;
+}
+
+.tag-pill-text {
+  color: var(--tag-color);
+}
+
+.tag-pill-remove {
+  cursor: pointer;
+  color: var(--tag-color);
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 1;
+  padding: 0 2px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.tag-pill-remove:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+/* Custom tag input - replicates search-input */
+.tag-input {
+  display: block;
+  flex: 1;
+  min-width: 120px;
+  height: auto;
+  -webkit-app-region: no-drag;
+  background: transparent !important;
+  border: none !important;
+  color: var(--text-normal);
+  font-family: inherit;
+  padding: 0;
+  font-size: var(--font-ui-small);
+  outline: none;
+  unicode-bidi: plaintext;
+  box-shadow: none !important;
+}
+
+/* Custom tag input icon - positioned like search icon */
+.tag-input-icon {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  color: var(--text-muted);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.tag-input-icon svg {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+/* Custom clear button - replicates search-input-clear-button */
+.tag-input-clear-button {
+  position: absolute;
+  background: transparent;
+  border-radius: 50%;
+  color: var(--search-clear-button-color);
+  cursor: var(--cursor);
+  top: 50%;
+  right: 2px;
+  transform: translateY(-50%);
+  line-height: 0;
+  height: var(--input-height);
+  width: 28px;
+  padding: 0 0;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: color var(--anim-duration-fast) ease-in-out;
+  z-index: 2;
+}
+
+/* Add X icon using CSS pseudo-element */
+.tag-input-clear-button::before {
+  content: "✕";
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 1;
+}
+
+.tag-suggestions-container {
+  position: fixed;
+  z-index: 10000;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 300px;
+  overflow-y: auto;
+  display: none;
+}
+
+.tag-suggestions-list {
+  padding: 0.25rem 0;
+}
+
+.tag-suggestion {
+  padding: 0.5rem 0.5rem;
+  cursor: pointer;
+  margin: 0 0.5rem;
+  border-radius: 4px;
+}
+
+.tag-suggestion:last-child {
+  border-bottom: none;
+}
+
+.tag-suggestion:hover,
+.tag-suggestion.is-selected {
+  background: var(--background-modifier-hover);
+}
+
+.tag-suggestion.is-selected-tag {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tag-suggestion strong {
+  font-weight: bold;
+  color: var(--text-accent);
+}
