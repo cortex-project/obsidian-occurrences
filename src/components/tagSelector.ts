@@ -147,15 +147,7 @@ export class TagSelector extends Component {
       this.clearAllTags()
     })
 
-    // Add suggestions click listeners
-    this.registerDomEvent(this.suggestionsList, "click", e => {
-      const target = e.target as HTMLElement
-      const suggestionEl = target.closest(".tag-suggestion")
-      if (suggestionEl) {
-        const index = parseInt(suggestionEl.getAttribute("data-index") || "0")
-        this.selectTag(this.filteredTags[index])
-      }
-    })
+    // Individual click handlers are set up in renderSuggestions for each suggestion element
   }
 
   /**
@@ -215,7 +207,12 @@ export class TagSelector extends Component {
     this.suggestionsList.empty()
     this.selectedSuggestionIndex = -1
 
-    if (this.filteredTags.length === 0) {
+    // Filter out already selected tags to avoid creating empty DOM elements
+    const availableTags = this.filteredTags.filter(
+      tag => !this.selectedTags.includes(tag)
+    )
+
+    if (availableTags.length === 0) {
       this.hideSuggestions()
       return
     }
@@ -223,17 +220,11 @@ export class TagSelector extends Component {
     // Highlight the first suggestion by default
     this.selectedSuggestionIndex = 0
 
-    this.filteredTags.forEach((tag, index) => {
+    availableTags.forEach((tag, index) => {
       const suggestionEl = this.suggestionsList.createEl("div", {
         cls: "tag-suggestion",
         attr: { "data-index": index.toString() },
       })
-
-      // Skip if tag is already selected
-      if (this.selectedTags.includes(tag)) {
-        suggestionEl.addClass("is-selected-tag")
-        return
-      }
 
       // Remove # symbol for display
       const displayTag = tag.startsWith("#") ? tag.slice(1) : tag
@@ -255,7 +246,7 @@ export class TagSelector extends Component {
         suggestionEl.textContent = displayTag
       }
 
-      // Add click handler
+      // Add click handler - use closure to capture the current tag
       this.registerDomEvent(suggestionEl, "click", () => {
         this.selectTag(tag)
       })
@@ -371,12 +362,17 @@ export class TagSelector extends Component {
   private handleKeydown(e: KeyboardEvent): void {
     if (this.suggestionsContainer.style.display === "none") return
 
+    // Get available tags (excluding already selected ones)
+    const availableTags = this.filteredTags.filter(
+      tag => !this.selectedTags.includes(tag)
+    )
+
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault()
         this.selectedSuggestionIndex = Math.min(
           this.selectedSuggestionIndex + 1,
-          this.filteredTags.length - 1
+          availableTags.length - 1
         )
         this.updateSuggestionHighlight()
         break
@@ -392,10 +388,10 @@ export class TagSelector extends Component {
         e.preventDefault()
         if (this.selectedSuggestionIndex >= 0) {
           // Select the currently highlighted suggestion
-          this.selectTag(this.filteredTags[this.selectedSuggestionIndex])
-        } else if (this.filteredTags.length > 0) {
+          this.selectTag(availableTags[this.selectedSuggestionIndex])
+        } else if (availableTags.length > 0) {
           // Select the first suggestion if none is highlighted
-          this.selectTag(this.filteredTags[0])
+          this.selectTag(availableTags[0])
         }
         break
       case "Escape":

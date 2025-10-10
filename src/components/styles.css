@@ -420,11 +420,6 @@
   background: var(--background-modifier-hover);
 }
 
-.tag-suggestion.is-selected-tag {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .tag-suggestion strong {
   font-weight: bold;
   color: var(--text-accent);
