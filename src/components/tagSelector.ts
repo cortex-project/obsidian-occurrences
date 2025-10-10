@@ -42,6 +42,7 @@ export class TagSelector extends Component {
     }, this.options.debounceMs!)
     this.render(container)
     this.loadAvailableTags()
+    this.updatePlaceholder()
   }
 
   private render(container: HTMLElement): void {
@@ -74,10 +75,12 @@ export class TagSelector extends Component {
     this.selectedTagsContainer = inputWrapper.createEl("div", {
       cls: "selected-tags-container",
     })
+    this.selectedTagsContainer.style.display = "none"
 
     // Create tag input
     this.tagInput = inputWrapper.createEl("input", {
       type: "text",
+      placeholder: this.options.placeholder || "",
       attr: {
         id: "tag-input",
         spellcheck: "false",
@@ -287,6 +290,13 @@ export class TagSelector extends Component {
   private updateSelectedTagsDisplay(): void {
     this.selectedTagsContainer.empty()
 
+    // Hide the container if there are no selected tags
+    if (this.selectedTags.length === 0) {
+      this.selectedTagsContainer.style.display = "none"
+    } else {
+      this.selectedTagsContainer.style.display = "flex"
+    }
+
     this.selectedTags.forEach(tag => {
       const tagPill = this.selectedTagsContainer.createEl("div", {
         cls: "tag-pill",
@@ -314,6 +324,9 @@ export class TagSelector extends Component {
 
     // Check if tags have wrapped to multiple lines
     this.updateWrapperHeight()
+
+    // Update placeholder based on selected tags
+    this.updatePlaceholder()
   }
 
   /**
@@ -354,6 +367,17 @@ export class TagSelector extends Component {
         wrapper.classList.remove("has-wrapped-tags")
       }
     })
+  }
+
+  /**
+   * Update placeholder based on selected tags count
+   */
+  private updatePlaceholder(): void {
+    if (this.selectedTags.length === 0) {
+      this.tagInput.placeholder = this.options.placeholder || ""
+    } else {
+      this.tagInput.placeholder = ""
+    }
   }
 
   /**

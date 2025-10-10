@@ -272,7 +272,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 4px;
-  padding: 4px 8px 4px 36px;
+  padding: 0px 0px 0px 28px;
   min-height: var(--input-height);
   height: var(--input-height);
   overflow: hidden;
@@ -292,6 +292,7 @@
   flex-wrap: wrap;
   gap: 4px;
   align-items: center;
+  padding-left: 8px;
 }
 
 /* Tag pill styling */
@@ -329,7 +330,7 @@
 .tag-input {
   display: block;
   flex: 1;
-  min-width: 120px;
+  min-width: 40px;
   height: auto;
   -webkit-app-region: no-drag;
   background: transparent !important;

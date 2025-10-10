@@ -131,7 +131,7 @@ export class Header extends Component {
         this.onFilterChange({ ...this.filters })
       },
       {
-        placeholder: "Empty",
+        placeholder: "Has the tag...",
         debounceMs: 300,
       }
     )
