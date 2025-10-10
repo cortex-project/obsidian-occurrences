@@ -21,6 +21,7 @@ export class TagSelector extends Component {
   private availableTags: string[] = []
   private filteredTags: string[] = []
   private selectedSuggestionIndex: number = -1
+  private selectedTagIndex: number = -1 // Index of currently selected tag for navigation
   private visible: boolean = false
 
   constructor(
@@ -112,6 +113,11 @@ export class TagSelector extends Component {
       const target = e.target as HTMLInputElement
       this.updateClearButton()
       this.debouncedSearchChange(target.value)
+
+      // Clear tag selection when user starts typing
+      if (target.value.trim().length > 0) {
+        this.clearTagSelection()
+      }
     })
 
     // Handle container focus and clicks
@@ -327,6 +333,9 @@ export class TagSelector extends Component {
 
     // Update placeholder based on selected tags
     this.updatePlaceholder()
+
+    // Update tag highlight for keyboard navigation
+    this.updateTagHighlight()
   }
 
   /**
@@ -384,43 +393,101 @@ export class TagSelector extends Component {
    * Handle keyboard navigation
    */
   private handleKeydown(e: KeyboardEvent): void {
-    if (this.suggestionsContainer.style.display === "none") return
+    const hasText = this.tagInput.value.trim().length > 0
 
-    // Get available tags (excluding already selected ones)
-    const availableTags = this.filteredTags.filter(
-      tag => !this.selectedTags.includes(tag)
-    )
+    // Handle tag navigation when suggestions are hidden, we have selected tags, and input is empty
+    if (
+      this.suggestionsContainer.style.display === "none" &&
+      this.selectedTags.length > 0 &&
+      !hasText
+    ) {
+      switch (e.key) {
+        case "ArrowLeft":
+          e.preventDefault()
+          this.navigateToPreviousTag()
+          break
+        case "ArrowRight":
+          e.preventDefault()
+          this.navigateToNextTag()
+          break
+        case "Backspace":
+          e.preventDefault()
+          this.handleTagRemoval()
+          break
+        case "Delete":
+          e.preventDefault()
+          this.handleTagRemoval()
+          break
+        case "Escape":
+          this.clearTagSelection()
+          break
+      }
+      return
+    }
 
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault()
-        this.selectedSuggestionIndex = Math.min(
-          this.selectedSuggestionIndex + 1,
-          availableTags.length - 1
-        )
-        this.updateSuggestionHighlight()
-        break
-      case "ArrowUp":
-        e.preventDefault()
-        this.selectedSuggestionIndex = Math.max(
-          this.selectedSuggestionIndex - 1,
-          -1
-        )
-        this.updateSuggestionHighlight()
-        break
-      case "Enter":
-        e.preventDefault()
-        if (this.selectedSuggestionIndex >= 0) {
-          // Select the currently highlighted suggestion
-          this.selectTag(availableTags[this.selectedSuggestionIndex])
-        } else if (availableTags.length > 0) {
-          // Select the first suggestion if none is highlighted
-          this.selectTag(availableTags[0])
-        }
-        break
-      case "Escape":
-        this.hideSuggestions()
-        break
+    // Handle suggestion navigation when suggestions are visible
+    if (this.suggestionsContainer.style.display !== "none") {
+      // Get available tags (excluding already selected ones)
+      const availableTags = this.filteredTags.filter(
+        tag => !this.selectedTags.includes(tag)
+      )
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault()
+          this.selectedSuggestionIndex = Math.min(
+            this.selectedSuggestionIndex + 1,
+            availableTags.length - 1
+          )
+          this.updateSuggestionHighlight()
+          break
+        case "ArrowUp":
+          e.preventDefault()
+          this.selectedSuggestionIndex = Math.max(
+            this.selectedSuggestionIndex - 1,
+            -1
+          )
+          this.updateSuggestionHighlight()
+          break
+        case "Enter":
+          e.preventDefault()
+          if (this.selectedSuggestionIndex >= 0) {
+            // Select the currently highlighted suggestion
+            this.selectTag(availableTags[this.selectedSuggestionIndex])
+          } else if (availableTags.length > 0) {
+            // Select the first suggestion if none is highlighted
+            this.selectTag(availableTags[0])
+          }
+          break
+        case "Escape":
+          this.hideSuggestions()
+          break
+        // Only handle tag navigation when input is empty
+        case "ArrowLeft":
+          if (!hasText) {
+            e.preventDefault()
+            this.navigateToPreviousTag()
+          }
+          break
+        case "ArrowRight":
+          if (!hasText) {
+            e.preventDefault()
+            this.navigateToNextTag()
+          }
+          break
+        case "Backspace":
+          if (!hasText) {
+            e.preventDefault()
+            this.handleTagRemoval()
+          }
+          break
+        case "Delete":
+          if (!hasText) {
+            e.preventDefault()
+            this.handleTagRemoval()
+          }
+          break
+      }
     }
   }
 
@@ -439,6 +506,92 @@ export class TagSelector extends Component {
   }
 
   /**
+   * Navigate to the previous tag
+   */
+  private navigateToPreviousTag(): void {
+    if (this.selectedTags.length === 0) return
+
+    if (this.selectedTagIndex === -1) {
+      // Start from the last tag
+      this.selectedTagIndex = this.selectedTags.length - 1
+    } else {
+      // Move to previous tag
+      this.selectedTagIndex = Math.max(0, this.selectedTagIndex - 1)
+    }
+
+    this.updateTagHighlight()
+  }
+
+  /**
+   * Navigate to the next tag
+   */
+  private navigateToNextTag(): void {
+    if (this.selectedTags.length === 0) return
+
+    if (this.selectedTagIndex === -1) {
+      // Start from the first tag
+      this.selectedTagIndex = 0
+    } else {
+      // Move to next tag
+      this.selectedTagIndex = Math.min(
+        this.selectedTags.length - 1,
+        this.selectedTagIndex + 1
+      )
+    }
+
+    this.updateTagHighlight()
+  }
+
+  /**
+   * Handle tag removal via keyboard
+   */
+  private handleTagRemoval(): void {
+    if (this.selectedTags.length === 0) return
+
+    // If no tag is selected, select the last one
+    if (this.selectedTagIndex === -1) {
+      this.selectedTagIndex = this.selectedTags.length - 1
+      this.updateTagHighlight()
+      return
+    }
+
+    // Remove the currently selected tag
+    const tagToRemove = this.selectedTags[this.selectedTagIndex]
+    this.removeTag(tagToRemove)
+
+    // Adjust the selected index
+    if (this.selectedTags.length === 0) {
+      this.selectedTagIndex = -1
+    } else if (this.selectedTagIndex >= this.selectedTags.length) {
+      this.selectedTagIndex = this.selectedTags.length - 1
+    }
+
+    this.updateTagHighlight()
+  }
+
+  /**
+   * Clear tag selection
+   */
+  private clearTagSelection(): void {
+    this.selectedTagIndex = -1
+    this.updateTagHighlight()
+  }
+
+  /**
+   * Update tag highlight for keyboard navigation
+   */
+  private updateTagHighlight(): void {
+    const tagPills = this.selectedTagsContainer.querySelectorAll(".tag-pill")
+    tagPills.forEach((pill, index) => {
+      if (index === this.selectedTagIndex) {
+        pill.addClass("is-keyboard-selected")
+      } else {
+        pill.removeClass("is-keyboard-selected")
+      }
+    })
+  }
+
+  /**
    * Update clear button visibility
    */
   private updateClearButton(): void {
@@ -450,6 +603,7 @@ export class TagSelector extends Component {
    */
   private clearAllTags(): void {
     this.selectedTags = []
+    this.selectedTagIndex = -1
     this.updateSelectedTagsDisplay()
     this.updateClearButton()
     this.hideSuggestions()
@@ -484,6 +638,7 @@ export class TagSelector extends Component {
   public clearInput(): void {
     this.tagInput.value = ""
     this.selectedTags = []
+    this.selectedTagIndex = -1
     this.updateSelectedTagsDisplay()
     this.updateClearButton()
     this.hideSuggestions()
@@ -522,6 +677,7 @@ export class TagSelector extends Component {
    */
   public setValue(tags: string[]): void {
     this.selectedTags = [...tags]
+    this.selectedTagIndex = -1
     this.updateSelectedTagsDisplay()
     this.updateClearButton()
     this.onTagsChange([...this.selectedTags])

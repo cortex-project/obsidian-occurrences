@@ -326,6 +326,13 @@
   background-color: var(--background-modifier-hover);
 }
 
+/* Keyboard-selected tag highlighting */
+.tag-pill.is-keyboard-selected {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: 1px;
+  background-color: var(--background-modifier-hover);
+}
+
 /* Custom tag input - replicates search-input */
 .tag-input {
   display: block;
