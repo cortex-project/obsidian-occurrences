@@ -406,6 +406,7 @@
   max-height: 300px;
   overflow-y: auto;
   display: none;
+  /* Dynamic positioning (top, left, width) is set via JavaScript */
 }
 
 .tag-suggestions-list {

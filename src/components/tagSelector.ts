@@ -98,8 +98,9 @@ export class TagSelector extends Component {
     })
     this.tagClear.style.display = "none"
 
-    // Create suggestions container
-    this.suggestionsContainer = this.tagContainer.createEl("div", {
+    // Create suggestions container and append to document.body
+    // This ensures it's not affected by parent transforms/positioning
+    this.suggestionsContainer = document.body.createEl("div", {
       cls: "tag-suggestions-container",
     })
     this.suggestionsContainer.style.display = "none"
@@ -154,6 +155,25 @@ export class TagSelector extends Component {
     // Add clear button event listener
     this.registerDomEvent(this.tagClear, "click", () => {
       this.clearAllTags()
+    })
+
+    // Hide suggestions on scroll (anywhere in the document)
+    this.registerDomEvent(
+      window,
+      "scroll",
+      () => {
+        if (this.suggestionsContainer.style.display !== "none") {
+          this.hideSuggestions()
+        }
+      },
+      { capture: true }
+    )
+
+    // Reposition suggestions on window resize
+    this.registerDomEvent(window, "resize", () => {
+      if (this.suggestionsContainer.style.display !== "none") {
+        this.updateSuggestionsPosition()
+      }
     })
 
     // Individual click handlers are set up in renderSuggestions for each suggestion element
@@ -336,6 +356,11 @@ export class TagSelector extends Component {
 
     // Update tag highlight for keyboard navigation
     this.updateTagHighlight()
+
+    // Update suggestions position if they're visible (input may have grown)
+    if (this.suggestionsContainer.style.display !== "none") {
+      this.updateSuggestionsPosition()
+    }
   }
 
   /**
@@ -648,13 +673,56 @@ export class TagSelector extends Component {
    * Show suggestions container
    */
   private showSuggestions(): void {
-    // Position the suggestions container using fixed positioning to avoid clipping
-    const rect = this.tagInputContainer.getBoundingClientRect()
-    this.suggestionsContainer.style.position = "fixed"
-    this.suggestionsContainer.style.top = `${rect.bottom + 4}px`
-    this.suggestionsContainer.style.left = `${rect.left}px`
-    this.suggestionsContainer.style.width = `${rect.width}px`
+    this.updateSuggestionsPosition()
     this.suggestionsContainer.style.display = "block"
+  }
+
+  /**
+   * Update suggestions container position
+   */
+  private updateSuggestionsPosition(): void {
+    // Get the input container's position
+    const inputRect = this.tagInputContainer.getBoundingClientRect()
+
+    // Get viewport dimensions
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+
+    // Calculate optimal width (match input container width)
+    const width = inputRect.width
+
+    // Calculate top position (directly below input, no offset)
+    let top = inputRect.bottom + 4
+
+    // Calculate left position (align with input container, no offset)
+    let left = inputRect.left
+
+    // Prevent overflow on the right
+    if (left + width > viewportWidth) {
+      left = viewportWidth - width - 8 // 8px margin from edge
+    }
+
+    // Prevent overflow on the left
+    if (left < 8) {
+      left = 8
+    }
+
+    // Check if suggestions would overflow bottom of viewport
+    const maxHeight = 300 // matches max-height in CSS
+    if (top + maxHeight > viewportHeight) {
+      // Position above the input instead
+      top = inputRect.top - maxHeight - 4
+
+      // If still not enough room, position at top of viewport
+      if (top < 8) {
+        top = 8
+      }
+    }
+
+    // Apply positioning
+    this.suggestionsContainer.style.top = `${top}px`
+    this.suggestionsContainer.style.left = `${left}px`
+    this.suggestionsContainer.style.width = `${width}px`
   }
 
   /**
@@ -699,5 +767,15 @@ export class TagSelector extends Component {
 
   public getElement(): HTMLElement {
     return this.tagContainer
+  }
+
+  /**
+   * Clean up when component is destroyed
+   */
+  onunload(): void {
+    // Remove suggestions container from document.body
+    if (this.suggestionsContainer) {
+      this.suggestionsContainer.remove()
+    }
   }
 }
