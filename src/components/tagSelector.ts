@@ -53,7 +53,7 @@ export class TagSelector extends Component {
   private render(container: HTMLElement): void {
     // Create tag container
     this.tagContainer = container.createEl("div", {
-      cls: "tag-container",
+      cls: "occurrences-tag-container",
     })
     this.tagContainer.style.display = "none"
 
