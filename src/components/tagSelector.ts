@@ -13,7 +13,7 @@ export class TagSelector extends Component {
   private tagClear: HTMLElement
   private suggestionsContainer: HTMLElement
   private suggestionsList: HTMLElement
-  private selectedTagsContainer: HTMLElement
+  private inputWrapper: HTMLElement
   private onTagsChange: (tags: string[]) => void
   private debouncedSearchChange: (query: string) => void
   private options: TagSelectorOptions
@@ -75,7 +75,7 @@ export class TagSelector extends Component {
     })
 
     // Store reference to input wrapper for later use
-    this.selectedTagsContainer = inputWrapper // Reuse variable to avoid breaking other references
+    this.inputWrapper = inputWrapper
 
     // Create tag input
     this.tagInput = inputWrapper.createEl("input", {
@@ -321,18 +321,17 @@ export class TagSelector extends Component {
    */
   private updateSelectedTagsDisplay(): void {
     // Remove existing tag pills from wrapper
-    const existingPills =
-      this.selectedTagsContainer.querySelectorAll(".tag-pill")
+    const existingPills = this.inputWrapper.querySelectorAll(".tag-pill")
     existingPills.forEach(pill => pill.remove())
 
     // Create tag pills directly in wrapper, before the input
     this.selectedTags.forEach(tag => {
-      const tagPill = this.selectedTagsContainer.createEl("div", {
+      const tagPill = this.inputWrapper.createEl("div", {
         cls: "tag-pill",
       })
 
       // Insert before the input element
-      this.selectedTagsContainer.insertBefore(tagPill, this.tagInput)
+      this.inputWrapper.insertBefore(tagPill, this.tagInput)
 
       // Remove # symbol for display
       const displayTag = tag.startsWith("#") ? tag.slice(1) : tag
@@ -611,7 +610,7 @@ export class TagSelector extends Component {
    * Update tag highlight for keyboard navigation
    */
   private updateTagHighlight(): void {
-    const tagPills = this.selectedTagsContainer.querySelectorAll(".tag-pill")
+    const tagPills = this.inputWrapper.querySelectorAll(".tag-pill")
     tagPills.forEach((pill, index) => {
       if (index === this.selectedTagIndex) {
         pill.addClass("is-keyboard-selected")
