@@ -25,6 +25,7 @@ export class TagSelector extends Component {
   private selectedTagIndex: number = -1 // Index of currently selected tag for navigation
   private visible: boolean = false
   private scrollListener: ((e: Event) => void) | null = null
+  private cachedSingleLineHeight: number | null = null
 
   constructor(
     container: HTMLElement,
@@ -357,6 +358,21 @@ export class TagSelector extends Component {
   }
 
   /**
+   * Get the single-line height (cached)
+   */
+  private getSingleLineHeight(): number {
+    if (this.cachedSingleLineHeight === null) {
+      this.cachedSingleLineHeight =
+        parseInt(
+          getComputedStyle(document.documentElement).getPropertyValue(
+            "--input-height"
+          )
+        ) || 32
+    }
+    return this.cachedSingleLineHeight
+  }
+
+  /**
    * Update wrapper height based on content
    */
   private updateWrapperHeight(): void {
@@ -374,12 +390,7 @@ export class TagSelector extends Component {
     wrapper.style.height = originalHeight
 
     // Get the single-line height (input height)
-    const singleLineHeight =
-      parseInt(
-        getComputedStyle(document.documentElement).getPropertyValue(
-          "--input-height"
-        )
-      ) || 32
+    const singleLineHeight = this.getSingleLineHeight()
 
     // Check if content exceeds single line height
     const hasWrapped = naturalHeight > singleLineHeight + 8 // Add small buffer for padding
