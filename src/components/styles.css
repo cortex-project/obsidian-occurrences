@@ -279,6 +279,11 @@
   height: auto;
 }
 
+/* Add padding when tags wrap to multiple lines */
+.tag-input-wrapper.has-wrapped-tags {
+  padding: 4px 22px 4px 28px;
+}
+
 /* Tag pill styling - direct children of wrapper */
 .tag-pill {
   display: flex;
