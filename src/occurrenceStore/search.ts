@@ -117,6 +117,20 @@ export class OccurrenceSearch {
   }
 
   /**
+   * Get all tags with their occurrence counts
+   * @returns Map of tag names to occurrence counts
+   */
+  public getAllTags(): Map<string, number> {
+    const tagCounts = new Map<string, number>()
+
+    for (const [tag, occurrencePaths] of this.tagIndex) {
+      tagCounts.set(tag, occurrencePaths.size)
+    }
+
+    return tagCounts
+  }
+
+  /**
    * Clear all indexes
    */
   public clear(): void {
@@ -210,11 +224,14 @@ export class OccurrenceSearch {
   private searchByTags(tags: string[]): Set<string> {
     if (tags.length === 0) return new Set(this.items.keys())
 
-    let resultPaths = this.tagIndex.get(tags[0]) || new Set()
+    const resultPaths = new Set<string>()
 
-    for (let i = 1; i < tags.length; i++) {
-      const tagPaths = this.tagIndex.get(tags[i]) || new Set()
-      resultPaths = new Set([...resultPaths].filter(path => tagPaths.has(path)))
+    // Union all tag sets (OR logic) - return occurrences that have ANY of the specified tags
+    for (const tag of tags) {
+      const tagPaths = this.tagIndex.get(tag) || new Set()
+      for (const path of tagPaths) {
+        resultPaths.add(path)
+      }
     }
 
     return resultPaths

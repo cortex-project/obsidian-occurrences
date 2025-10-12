@@ -27,6 +27,8 @@ export class OccurrencesView extends ItemView {
     currentFile: false,
     selectedFile: null,
     inbox: false,
+    tags: false,
+    selectedTags: [],
   }
 
   constructor(leaf: WorkspaceLeaf, plugin: CoretexPlugin) {
@@ -54,8 +56,11 @@ export class OccurrencesView extends ItemView {
     container.addClass("occurrences-view-container")
 
     // Create header element
-    this.header = new Header(container as HTMLElement, this.app, filters =>
-      this.handleFilterChange(filters)
+    this.header = new Header(
+      container as HTMLElement,
+      this.app,
+      this.occurrenceStore,
+      filters => this.handleFilterChange(filters)
     )
     this.addChild(this.header)
 
@@ -185,6 +190,17 @@ export class OccurrencesView extends ItemView {
       searchOptions.toProcess = true
     }
 
+    // Apply tag filter if active
+    if (
+      this.currentFilters.tags &&
+      this.currentFilters.selectedTags.length > 0
+    ) {
+      // Remove # prefix from tags before searching
+      searchOptions.tags = this.currentFilters.selectedTags.map(tag =>
+        tag.startsWith("#") ? tag.slice(1) : tag
+      )
+    }
+
     // Give the list instance based on current filters
     const searchResult = this.occurrenceStore.search(searchOptions)
 
@@ -220,6 +236,24 @@ export class OccurrencesView extends ItemView {
     // Apply inbox filter if active
     if (this.currentFilters.inbox) {
       if (!occurrence.properties.toProcess) {
+        return false
+      }
+    }
+
+    // Apply tag filter if active
+    if (
+      this.currentFilters.tags &&
+      this.currentFilters.selectedTags.length > 0
+    ) {
+      const occurrenceTags = occurrence.properties.tags || []
+      // Remove # prefix from selected tags for comparison
+      const normalizedSelectedTags = this.currentFilters.selectedTags.map(tag =>
+        tag.startsWith("#") ? tag.slice(1) : tag
+      )
+      const hasMatchingTag = normalizedSelectedTags.some(selectedTag =>
+        occurrenceTags.includes(selectedTag)
+      )
+      if (!hasMatchingTag) {
         return false
       }
     }
@@ -308,6 +342,13 @@ export class OccurrencesView extends ItemView {
       }
       if (this.currentFilters.inbox) {
         filterDescriptions.push("in inbox")
+      }
+      if (
+        this.currentFilters.tags &&
+        this.currentFilters.selectedTags.length > 0
+      ) {
+        const tagList = this.currentFilters.selectedTags.join(", ")
+        filterDescriptions.push(`with tags "${tagList}"`)
       }
 
       let message = "Your current search did not return any results."

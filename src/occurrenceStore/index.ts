@@ -115,6 +115,13 @@ export class OccurrenceStore {
   }
 
   /**
+   * Get all tags with their occurrence counts
+   */
+  public getAllTags(): Map<string, number> {
+    return this.searchService.getAllTags()
+  }
+
+  /**
    * Subscribe to store events
    */
   public on(event: string, callback: (...args: any[]) => void) {

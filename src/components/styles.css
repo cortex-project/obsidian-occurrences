@@ -233,3 +233,177 @@
   color: var(--text-muted);
   font-size: var(--font-ui-smaller);
 }
+
+/* ========================================
+   TAG SELECTOR COMPONENTS
+======================================== */
+
+.occurrences-tag-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+}
+
+/* Custom tag input container - replicates search-input-container */
+.tag-input-container {
+  position: relative;
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  background: var(--background-modifier-form-field);
+  border: var(--input-border-width) solid var(--background-modifier-border);
+  border-radius: var(--input-radius);
+  cursor: text;
+  transition: border-color var(--anim-duration-fast) ease-in-out;
+}
+
+.tag-input-container:focus-within {
+  outline: 3px solid var(--background-modifier-border-focus);
+  outline-offset: -3px;
+}
+
+/* Input wrapper for positioning clear button and selected tags */
+.tag-input-wrapper {
+  position: relative;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0px 22px 0px 28px;
+  min-height: var(--input-height);
+  height: auto;
+}
+
+/* Add padding when tags wrap to multiple lines */
+.tag-input-wrapper.has-wrapped-tags {
+  padding: 4px 22px 4px 28px;
+}
+
+/* Tag pill styling - direct children of wrapper */
+.tag-pill {
+  display: flex;
+  align-items: center;
+  background-color: var(--tag-background);
+  color: var(--tag-color);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: var(--font-ui-smaller);
+  gap: 4px;
+  flex: 0 0 auto;
+  /* Don't grow or shrink, wrap naturally */
+}
+
+.tag-pill:first-of-type {
+  margin-left: 8px;
+}
+
+.tag-pill-text {
+  color: var(--tag-color);
+}
+
+.tag-pill-remove {
+  cursor: pointer;
+  color: var(--tag-color);
+  font-weight: lighter;
+  font-size: 18px;
+  margin-top: -2px;
+  line-height: 1;
+
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+/* Keyboard-selected tag highlighting */
+.tag-pill.is-keyboard-selected {
+  outline: 2px solid var(--background-modifier-border-focus);
+}
+
+/* Custom tag input - replicates search-input */
+.tag-input {
+  flex: 1 1 60px;
+  min-width: 60px;
+  max-width: 100%;
+  height: auto;
+  -webkit-app-region: no-drag;
+  background: transparent !important;
+  border: none !important;
+  color: var(--text-normal);
+  font-family: inherit;
+  padding: 0;
+  font-size: var(--font-ui-small);
+  outline: none;
+  unicode-bidi: plaintext;
+  box-shadow: none !important;
+}
+
+/* Custom tag input icon - positioned like search icon */
+.tag-input-icon {
+  position: absolute;
+  left: 8px;
+  top: 4px;
+  color: var(--text-muted);
+  z-index: 1;
+  pointer-events: none;
+  font-size: large;
+}
+
+.tag-input-icon svg {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+.tag-suggestions-container {
+  position: fixed;
+  z-index: 10000;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 300px;
+  overflow-y: auto;
+  display: none;
+  /* Dynamic positioning (top, left, width) is set via JavaScript */
+}
+
+.tag-suggestions-list {
+  padding: 0.25rem 0;
+}
+
+.tag-suggestion {
+  padding: 0.5rem 0.5rem;
+  cursor: pointer;
+  margin: 0 0.5rem;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.tag-suggestion:hover,
+.tag-suggestion.is-selected {
+  background: var(--background-modifier-hover);
+}
+
+.tag-suggestion-name {
+  flex: 1;
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+}
+
+.tag-suggestion-name strong {
+  font-weight: bold;
+  color: var(--text-accent);
+}
+
+.tag-suggestion-count {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  opacity: 0.7;
+}
