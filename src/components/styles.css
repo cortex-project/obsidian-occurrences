@@ -274,7 +274,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 4px;
-  padding: 4px 22px 4px 28px;
+  padding: 0px 22px 0px 28px;
   min-height: var(--input-height);
   height: auto;
 }
@@ -340,7 +340,7 @@
 .tag-input-icon {
   position: absolute;
   left: 8px;
-  top: 8px;
+  top: 4px;
   color: var(--text-muted);
   z-index: 1;
   pointer-events: none;
