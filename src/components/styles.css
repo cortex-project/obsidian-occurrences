@@ -352,36 +352,6 @@
   height: 1.2em;
 }
 
-/* Custom clear button - replicates search-input-clear-button */
-.tag-input-clear-button {
-  position: absolute;
-  background: transparent;
-  border-radius: 50%;
-  color: var(--search-clear-button-color);
-  cursor: var(--cursor);
-  top: 50%;
-  right: 2px;
-  transform: translateY(-50%);
-  line-height: 0;
-  height: var(--input-height);
-  width: 28px;
-  padding: 0 0;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: color var(--anim-duration-fast) ease-in-out;
-  z-index: 2;
-}
-
-/* Add X icon using CSS pseudo-element */
-.tag-input-clear-button::before {
-  content: "✕";
-  font-size: 14px;
-  font-weight: normal;
-  line-height: 1;
-}
-
 .tag-suggestions-container {
   position: fixed;
   z-index: 10000;
@@ -404,10 +374,6 @@
   cursor: pointer;
   margin: 0 0.5rem;
   border-radius: 4px;
-}
-
-.tag-suggestion:last-child {
-  border-bottom: none;
 }
 
 .tag-suggestion:hover,
