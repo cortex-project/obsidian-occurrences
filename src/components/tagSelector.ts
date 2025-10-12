@@ -20,7 +20,7 @@ export class TagSelector extends Component {
   private occurrenceStore: OccurrenceStore
   private selectedTags: string[] = []
   private availableTags: Map<string, number> = new Map()
-  private filteredTags: Map<string, number> = new Map()
+  private filteredTags: Array<[string, number]> = []
   private selectedSuggestionIndex: number = -1
   private selectedTagIndex: number = -1 // Index of currently selected tag for navigation
   private visible: boolean = false
@@ -169,7 +169,7 @@ export class TagSelector extends Component {
       if (!suggestionEl) return
 
       const index = parseInt(suggestionEl.getAttribute("data-index") || "-1")
-      const availableTags = Array.from(this.filteredTags.entries()).filter(
+      const availableTags = this.filteredTags.filter(
         ([tag]) => !this.selectedTags.includes(tag)
       )
 
@@ -204,10 +204,8 @@ export class TagSelector extends Component {
     }
 
     const queryLower = query.toLowerCase()
-    this.filteredTags = new Map(
-      Array.from(this.availableTags.entries()).filter(([tag]) =>
-        tag.toLowerCase().includes(queryLower)
-      )
+    this.filteredTags = Array.from(this.availableTags.entries()).filter(
+      ([tag]) => tag.toLowerCase().includes(queryLower)
     )
 
     this.renderSuggestions()
@@ -217,7 +215,7 @@ export class TagSelector extends Component {
    * Show all available tags
    */
   private showAllTags(): void {
-    this.filteredTags = new Map(this.availableTags)
+    this.filteredTags = Array.from(this.availableTags.entries())
     this.renderSuggestions()
   }
 
@@ -229,7 +227,7 @@ export class TagSelector extends Component {
     this.selectedSuggestionIndex = -1
 
     // Filter out already selected tags to avoid creating empty DOM elements
-    const availableTags = Array.from(this.filteredTags.entries()).filter(
+    const availableTags = this.filteredTags.filter(
       ([tag]) => !this.selectedTags.includes(tag)
     )
 
@@ -443,7 +441,7 @@ export class TagSelector extends Component {
     // Handle suggestion navigation when suggestions are visible
     if (this.suggestionsContainer.style.display !== "none") {
       // Get available tags (excluding already selected ones)
-      const availableTags = Array.from(this.filteredTags.entries()).filter(
+      const availableTags = this.filteredTags.filter(
         ([tag]) => !this.selectedTags.includes(tag)
       )
 
