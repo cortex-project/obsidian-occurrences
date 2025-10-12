@@ -334,9 +334,6 @@ export class TagSelector extends Component {
 
       const removeButton = tagPill.createEl("div", {
         cls: "tag-pill-remove",
-        attr: {
-          "aria-label": `Remove ${displayTag} tag`,
-        },
       })
       removeButton.textContent = "×"
 

@@ -304,16 +304,13 @@
 .tag-pill-remove {
   cursor: pointer;
   color: var(--tag-color);
-  font-weight: bold;
-  font-size: 12px;
+  font-weight: lighter;
+  font-size: 18px;
+  margin-top: -2px;
   line-height: 1;
-  padding: 0 2px;
+
   border-radius: 50%;
   transition: background-color 0.2s ease;
-}
-
-.tag-pill-remove:hover {
-  background-color: var(--background-modifier-hover);
 }
 
 /* Keyboard-selected tag highlighting */
