@@ -155,11 +155,15 @@ export class TagSelector extends Component {
       this.clearAllTags()
     })
 
-    // Hide suggestions on scroll (anywhere in the document)
+    // Hide suggestions on scroll (anywhere except inside suggestions container)
     this.registerDomEvent(
       window,
       "scroll",
-      () => {
+      e => {
+        // Don't hide if scrolling within the suggestions container
+        if (this.suggestionsContainer.contains(e.target as Node)) {
+          return
+        }
         if (this.suggestionsContainer.style.display !== "none") {
           this.hideSuggestions()
         }
@@ -530,6 +534,8 @@ export class TagSelector extends Component {
     suggestions.forEach((el, index) => {
       if (index === this.selectedSuggestionIndex) {
         el.addClass("is-selected")
+        // Scroll the selected element into view
+        el.scrollIntoView({ block: "nearest", behavior: "smooth" })
       } else {
         el.removeClass("is-selected")
       }
