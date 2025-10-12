@@ -1,3 +1,4 @@
+import { OccurrenceStore } from "@/occurrenceStore"
 import { Component, debounce, setIcon } from "obsidian"
 
 export interface TagSelectorOptions {
@@ -16,22 +17,22 @@ export class TagSelector extends Component {
   private onTagsChange: (tags: string[]) => void
   private debouncedSearchChange: (query: string) => void
   private options: TagSelectorOptions
-  private app: any
+  private occurrenceStore: OccurrenceStore
   private selectedTags: string[] = []
-  private availableTags: string[] = []
-  private filteredTags: string[] = []
+  private availableTags: Map<string, number> = new Map()
+  private filteredTags: Map<string, number> = new Map()
   private selectedSuggestionIndex: number = -1
   private selectedTagIndex: number = -1 // Index of currently selected tag for navigation
   private visible: boolean = false
 
   constructor(
     container: HTMLElement,
-    app: any,
+    occurrenceStore: OccurrenceStore,
     onTagsChange: (tags: string[]) => void,
     options: TagSelectorOptions = {}
   ) {
     super()
-    this.app = app
+    this.occurrenceStore = occurrenceStore
     this.options = {
       placeholder: "Empty",
       debounceMs: 300,
@@ -180,18 +181,15 @@ export class TagSelector extends Component {
    * Load all available tags from the occurrence store
    */
   private loadAvailableTags(): void {
-    // Use Obsidian's metadata cache to get all tags
-    const allTags = new Set<string>()
+    // Get tags from the occurrence store with their counts
+    const tagsWithCounts = this.occurrenceStore.getAllTags()
 
-    // Get all tags from the metadata cache
-    const tags = this.app.metadataCache.getTags()
-    if (tags) {
-      Object.keys(tags).forEach(tag => {
-        allTags.add(tag)
-      })
-    }
-
-    this.availableTags = Array.from(allTags).sort()
+    // Sort tags alphabetically by tag name
+    this.availableTags = new Map(
+      Array.from(tagsWithCounts.entries()).sort((a, b) =>
+        a[0].localeCompare(b[0])
+      )
+    )
   }
 
   /**
@@ -211,8 +209,10 @@ export class TagSelector extends Component {
     }
 
     const queryLower = query.toLowerCase()
-    this.filteredTags = this.availableTags.filter(tag =>
-      tag.toLowerCase().includes(queryLower)
+    this.filteredTags = new Map(
+      Array.from(this.availableTags.entries()).filter(([tag]) =>
+        tag.toLowerCase().includes(queryLower)
+      )
     )
 
     this.renderSuggestions()
@@ -222,7 +222,7 @@ export class TagSelector extends Component {
    * Show all available tags
    */
   private showAllTags(): void {
-    this.filteredTags = this.availableTags
+    this.filteredTags = new Map(this.availableTags)
     this.renderSuggestions()
   }
 
@@ -234,8 +234,8 @@ export class TagSelector extends Component {
     this.selectedSuggestionIndex = -1
 
     // Filter out already selected tags to avoid creating empty DOM elements
-    const availableTags = this.filteredTags.filter(
-      tag => !this.selectedTags.includes(tag)
+    const availableTags = Array.from(this.filteredTags.entries()).filter(
+      ([tag]) => !this.selectedTags.includes(tag)
     )
 
     if (availableTags.length === 0) {
@@ -246,7 +246,7 @@ export class TagSelector extends Component {
     // Highlight the first suggestion by default
     this.selectedSuggestionIndex = 0
 
-    availableTags.forEach((tag, index) => {
+    availableTags.forEach(([tag, count], index) => {
       const suggestionEl = this.suggestionsList.createEl("div", {
         cls: "tag-suggestion",
         attr: { "data-index": index.toString() },
@@ -254,6 +254,11 @@ export class TagSelector extends Component {
 
       // Remove # symbol for display
       const displayTag = tag.startsWith("#") ? tag.slice(1) : tag
+
+      // Create a container for the tag name
+      const tagNameEl = suggestionEl.createEl("span", {
+        cls: "tag-suggestion-name",
+      })
 
       // Highlight matching text
       const searchQuery = this.tagInput.value.toLowerCase()
@@ -267,10 +272,16 @@ export class TagSelector extends Component {
         )
         const afterMatch = displayTag.substring(matchIndex + searchQuery.length)
 
-        suggestionEl.innerHTML = `${beforeMatch}<strong>${match}</strong>${afterMatch}`
+        tagNameEl.innerHTML = `${beforeMatch}<strong>${match}</strong>${afterMatch}`
       } else {
-        suggestionEl.textContent = displayTag
+        tagNameEl.textContent = displayTag
       }
+
+      // Create a container for the count
+      const countEl = suggestionEl.createEl("span", {
+        cls: "tag-suggestion-count",
+        text: count.toString(),
+      })
 
       // Add click handler - use closure to capture the current tag
       this.registerDomEvent(suggestionEl, "click", () => {
@@ -447,8 +458,8 @@ export class TagSelector extends Component {
     // Handle suggestion navigation when suggestions are visible
     if (this.suggestionsContainer.style.display !== "none") {
       // Get available tags (excluding already selected ones)
-      const availableTags = this.filteredTags.filter(
-        tag => !this.selectedTags.includes(tag)
+      const availableTags = Array.from(this.filteredTags.entries()).filter(
+        ([tag]) => !this.selectedTags.includes(tag)
       )
 
       switch (e.key) {
@@ -472,10 +483,10 @@ export class TagSelector extends Component {
           e.preventDefault()
           if (this.selectedSuggestionIndex >= 0) {
             // Select the currently highlighted suggestion
-            this.selectTag(availableTags[this.selectedSuggestionIndex])
+            this.selectTag(availableTags[this.selectedSuggestionIndex][0])
           } else if (availableTags.length > 0) {
             // Select the first suggestion if none is highlighted
-            this.selectTag(availableTags[0])
+            this.selectTag(availableTags[0][0])
           }
           break
         case "Escape":

@@ -56,8 +56,11 @@ export class OccurrencesView extends ItemView {
     container.addClass("occurrences-view-container")
 
     // Create header element
-    this.header = new Header(container as HTMLElement, this.app, filters =>
-      this.handleFilterChange(filters)
+    this.header = new Header(
+      container as HTMLElement,
+      this.app,
+      this.occurrenceStore,
+      filters => this.handleFilterChange(filters)
     )
     this.addChild(this.header)
 

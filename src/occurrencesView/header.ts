@@ -1,4 +1,5 @@
 import { FileSelector, SearchBar, TagSelector } from "@/components"
+import { OccurrenceStore } from "@/occurrenceStore"
 import { App, Component, setIcon, setTooltip } from "obsidian"
 
 export interface SearchFilters {
@@ -22,6 +23,7 @@ export class Header extends Component {
   private tagSelector: TagSelector
   private onFilterChange: (filters: SearchFilters) => void
   private app: App
+  private occurrenceStore: OccurrenceStore
   private filters: SearchFilters = {
     search: false,
     searchQuery: "",
@@ -35,10 +37,12 @@ export class Header extends Component {
   constructor(
     container: HTMLElement,
     app: App,
+    occurrenceStore: OccurrenceStore,
     onFilterChange: (filters: SearchFilters) => void
   ) {
     super()
     this.app = app
+    this.occurrenceStore = occurrenceStore
     this.headerEl = container.createEl("div", {
       cls: "occurrences-view-header",
     })
@@ -125,7 +129,7 @@ export class Header extends Component {
     // Create tag selector component
     this.tagSelector = new TagSelector(
       navHeader,
-      this.app,
+      this.occurrenceStore,
       (tags: string[]) => {
         this.filters.selectedTags = tags
         this.onFilterChange({ ...this.filters })

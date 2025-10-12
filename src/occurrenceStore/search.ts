@@ -117,6 +117,20 @@ export class OccurrenceSearch {
   }
 
   /**
+   * Get all tags with their occurrence counts
+   * @returns Map of tag names to occurrence counts
+   */
+  public getAllTags(): Map<string, number> {
+    const tagCounts = new Map<string, number>()
+
+    for (const [tag, occurrencePaths] of this.tagIndex) {
+      tagCounts.set(tag, occurrencePaths.size)
+    }
+
+    return tagCounts
+  }
+
+  /**
    * Clear all indexes
    */
   public clear(): void {
