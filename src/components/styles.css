@@ -260,7 +260,8 @@
 }
 
 .tag-input-container:focus-within {
-  border-color: var(--interactive-accent);
+  outline: 3px solid var(--background-modifier-border-focus);
+  outline-offset: -3px;
 }
 
 /* Input wrapper for positioning clear button and selected tags */
@@ -328,9 +329,7 @@
 
 /* Keyboard-selected tag highlighting */
 .tag-pill.is-keyboard-selected {
-  outline: 2px solid var(--interactive-accent);
-  outline-offset: 1px;
-  background-color: var(--background-modifier-hover);
+  outline: 2px solid var(--background-modifier-border-focus);
 }
 
 /* Custom tag input - replicates search-input */
