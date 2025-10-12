@@ -67,16 +67,13 @@ export class TagSelector extends Component {
     })
     setIcon(tagIcon, "tags")
 
-    // Create input wrapper for positioning (this will contain both tags and input)
+    // Create input wrapper for positioning (this will contain tags and input as direct children)
     const inputWrapper = this.tagInputContainer.createEl("div", {
       cls: "tag-input-wrapper",
     })
 
-    // Create selected tags container (inside the input wrapper)
-    this.selectedTagsContainer = inputWrapper.createEl("div", {
-      cls: "selected-tags-container",
-    })
-    this.selectedTagsContainer.style.display = "none"
+    // Store reference to input wrapper for later use
+    this.selectedTagsContainer = inputWrapper // Reuse variable to avoid breaking other references
 
     // Create tag input
     this.tagInput = inputWrapper.createEl("input", {
@@ -314,19 +311,19 @@ export class TagSelector extends Component {
    * Update the display of selected tags
    */
   private updateSelectedTagsDisplay(): void {
-    this.selectedTagsContainer.empty()
+    // Remove existing tag pills from wrapper
+    const existingPills =
+      this.selectedTagsContainer.querySelectorAll(".tag-pill")
+    existingPills.forEach(pill => pill.remove())
 
-    // Hide the container if there are no selected tags
-    if (this.selectedTags.length === 0) {
-      this.selectedTagsContainer.style.display = "none"
-    } else {
-      this.selectedTagsContainer.style.display = "flex"
-    }
-
+    // Create tag pills directly in wrapper, before the input
     this.selectedTags.forEach(tag => {
       const tagPill = this.selectedTagsContainer.createEl("div", {
         cls: "tag-pill",
       })
+
+      // Insert before the input element
+      this.selectedTagsContainer.insertBefore(tagPill, this.tagInput)
 
       // Remove # symbol for display
       const displayTag = tag.startsWith("#") ? tag.slice(1) : tag

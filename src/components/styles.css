@@ -251,7 +251,8 @@
   position: relative;
   padding: 0;
   display: flex;
-  align-items: center;
+  align-items: stretch;
+  width: 100%;
   background: var(--background-modifier-form-field);
   border: var(--input-border-width) solid var(--background-modifier-border);
   border-radius: var(--input-radius);
@@ -273,32 +274,14 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 4px;
-  padding: 0px 0px 0px 28px;
+  padding: 4px 22px 4px 28px;
   min-height: var(--input-height);
-  height: var(--input-height);
-  overflow: hidden;
-}
-
-/* When tags wrap to multiple lines, allow height to grow */
-.tag-input-wrapper.has-wrapped-tags {
   height: auto;
-  align-items: flex-start;
-  padding-top: 4px;
-  padding-bottom: 4px;
 }
 
-/* Selected tags container */
-.selected-tags-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: center;
-  padding-left: 8px;
-}
-
-/* Tag pill styling */
+/* Tag pill styling - direct children of wrapper */
 .tag-pill {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   background-color: var(--tag-background);
   color: var(--tag-color);
@@ -306,6 +289,12 @@
   padding: 2px 8px;
   font-size: var(--font-ui-smaller);
   gap: 4px;
+  flex: 0 0 auto;
+  /* Don't grow or shrink, wrap naturally */
+}
+
+.tag-pill:first-of-type {
+  margin-left: 8px;
 }
 
 .tag-pill-text {
@@ -334,9 +323,9 @@
 
 /* Custom tag input - replicates search-input */
 .tag-input {
-  display: block;
-  flex: 1;
-  min-width: 40px;
+  flex: 1 1 60px;
+  min-width: 60px;
+  max-width: 100%;
   height: auto;
   -webkit-app-region: no-drag;
   background: transparent !important;
