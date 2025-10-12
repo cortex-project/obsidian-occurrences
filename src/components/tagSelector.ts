@@ -24,6 +24,7 @@ export class TagSelector extends Component {
   private selectedSuggestionIndex: number = -1
   private selectedTagIndex: number = -1 // Index of currently selected tag for navigation
   private visible: boolean = false
+  private scrollListener: ((e: Event) => void) | null = null
 
   constructor(
     container: HTMLElement,
@@ -154,22 +155,6 @@ export class TagSelector extends Component {
     this.registerDomEvent(this.tagClear, "click", () => {
       this.clearAllTags()
     })
-
-    // Hide suggestions on scroll (anywhere except inside suggestions container)
-    this.registerDomEvent(
-      window,
-      "scroll",
-      e => {
-        // Don't hide if scrolling within the suggestions container
-        if (this.suggestionsContainer.contains(e.target as Node)) {
-          return
-        }
-        if (this.suggestionsContainer.style.display !== "none") {
-          this.hideSuggestions()
-        }
-      },
-      { capture: true }
-    )
 
     // Reposition suggestions on window resize
     this.registerDomEvent(window, "resize", () => {
@@ -695,6 +680,18 @@ export class TagSelector extends Component {
   private showSuggestions(): void {
     this.updateSuggestionsPosition()
     this.suggestionsContainer.style.display = "block"
+
+    // Add scroll listener only when suggestions are visible
+    if (!this.scrollListener) {
+      this.scrollListener = (e: Event) => {
+        // Don't hide if scrolling within the suggestions container
+        if (this.suggestionsContainer.contains(e.target as Node)) {
+          return
+        }
+        this.hideSuggestions()
+      }
+      window.addEventListener("scroll", this.scrollListener, true)
+    }
   }
 
   /**
@@ -751,6 +748,12 @@ export class TagSelector extends Component {
   private hideSuggestions(): void {
     this.suggestionsContainer.style.display = "none"
     this.selectedSuggestionIndex = -1
+
+    // Remove scroll listener when suggestions are hidden
+    if (this.scrollListener) {
+      window.removeEventListener("scroll", this.scrollListener, true)
+      this.scrollListener = null
+    }
   }
 
   /**
