@@ -178,7 +178,20 @@ export class TagSelector extends Component {
       }
     })
 
-    // Individual click handlers are set up in renderSuggestions for each suggestion element
+    // Add delegated click handler for all suggestions
+    this.registerDomEvent(this.suggestionsList, "click", e => {
+      const suggestionEl = (e.target as HTMLElement).closest(".tag-suggestion")
+      if (!suggestionEl) return
+
+      const index = parseInt(suggestionEl.getAttribute("data-index") || "-1")
+      const availableTags = Array.from(this.filteredTags.entries()).filter(
+        ([tag]) => !this.selectedTags.includes(tag)
+      )
+
+      if (index >= 0 && index < availableTags.length) {
+        this.selectTag(availableTags[index][0])
+      }
+    })
   }
 
   /**
@@ -285,11 +298,6 @@ export class TagSelector extends Component {
       const countEl = suggestionEl.createEl("span", {
         cls: "tag-suggestion-count",
         text: count.toString(),
-      })
-
-      // Add click handler - use closure to capture the current tag
-      this.registerDomEvent(suggestionEl, "click", () => {
-        this.selectTag(tag)
       })
     })
 
