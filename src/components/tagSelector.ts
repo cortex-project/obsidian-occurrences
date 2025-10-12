@@ -195,13 +195,6 @@ export class TagSelector extends Component {
   }
 
   /**
-   * Refresh available tags (useful when metadata cache updates)
-   */
-  private refreshAvailableTags(): void {
-    this.loadAvailableTags()
-  }
-
-  /**
    * Filter tags based on search query
    */
   private filterTags(query: string): void {
@@ -369,40 +362,35 @@ export class TagSelector extends Component {
    * Update wrapper height based on content
    */
   private updateWrapperHeight(): void {
-    // Use requestAnimationFrame to ensure DOM is updated before measuring
-    requestAnimationFrame(() => {
-      const wrapper = this.tagInputContainer.querySelector(
-        ".tag-input-wrapper"
-      ) as HTMLElement
-      if (!wrapper) return
+    const wrapper = this.inputWrapper
+    if (!wrapper) return
 
-      // Temporarily remove height constraint to measure natural height
-      const originalHeight = wrapper.style.height
-      wrapper.style.height = "auto"
+    // Temporarily remove height constraint to measure natural height
+    const originalHeight = wrapper.style.height
+    wrapper.style.height = "auto"
 
-      // Measure the natural height
-      const naturalHeight = wrapper.scrollHeight
+    // Measure the natural height
+    const naturalHeight = wrapper.scrollHeight
 
-      // Restore original height
-      wrapper.style.height = originalHeight
+    // Restore original height
+    wrapper.style.height = originalHeight
 
-      // Get the single-line height (input height)
-      const singleLineHeight =
-        parseInt(
-          getComputedStyle(document.documentElement).getPropertyValue(
-            "--input-height"
-          )
-        ) || 32
+    // Get the single-line height (input height)
+    const singleLineHeight =
+      parseInt(
+        getComputedStyle(document.documentElement).getPropertyValue(
+          "--input-height"
+        )
+      ) || 32
 
-      // Check if content exceeds single line height
-      const hasWrapped = naturalHeight > singleLineHeight + 8 // Add small buffer for padding
+    // Check if content exceeds single line height
+    const hasWrapped = naturalHeight > singleLineHeight + 8 // Add small buffer for padding
 
-      if (hasWrapped) {
-        wrapper.classList.add("has-wrapped-tags")
-      } else {
-        wrapper.classList.remove("has-wrapped-tags")
-      }
-    })
+    if (hasWrapped) {
+      wrapper.classList.add("has-wrapped-tags")
+    } else {
+      wrapper.classList.remove("has-wrapped-tags")
+    }
   }
 
   /**
@@ -647,7 +635,7 @@ export class TagSelector extends Component {
       this.tagContainer.style.display = "block"
       this.visible = true
       // Refresh tags when showing in case metadata cache has updated
-      this.refreshAvailableTags()
+      this.loadAvailableTags()
       this.tagInput.focus()
     }
   }
@@ -784,7 +772,7 @@ export class TagSelector extends Component {
    * Public method to refresh available tags
    */
   public refreshTags(): void {
-    this.refreshAvailableTags()
+    this.loadAvailableTags()
   }
 
   public getElement(): HTMLElement {
