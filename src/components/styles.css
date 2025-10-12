@@ -347,6 +347,7 @@
   color: var(--text-muted);
   z-index: 1;
   pointer-events: none;
+  font-size: large;
 }
 
 .tag-input-icon svg {
