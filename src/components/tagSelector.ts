@@ -302,8 +302,9 @@ export class TagSelector extends Component {
       this.selectedTags.push(tag)
       this.updateSelectedTagsDisplay()
       this.updateClearButton()
-      this.hideSuggestions()
       this.tagInput.value = ""
+      this.showAllTags()
+      this.showSuggestions()
       this.onTagsChange([...this.selectedTags])
     }
   }
