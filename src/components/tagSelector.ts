@@ -24,6 +24,7 @@ export class TagSelector extends Component {
   private selectedSuggestionIndex: number = -1
   private selectedTagIndex: number = -1 // Index of currently selected tag for navigation
   private visible: boolean = false
+  private suggestionsVisible: boolean = false
   private scrollListener: ((e: Event) => void) | null = null
   private cachedSingleLineHeight: number | null = null
 
@@ -159,7 +160,7 @@ export class TagSelector extends Component {
 
     // Reposition suggestions on window resize
     this.registerDomEvent(window, "resize", () => {
-      if (this.suggestionsContainer.style.display !== "none") {
+      if (this.suggestionsVisible) {
         this.updateSuggestionsPosition()
       }
     })
@@ -352,7 +353,7 @@ export class TagSelector extends Component {
     this.updateTagHighlight()
 
     // Update suggestions position if they're visible (input may have grown)
-    if (this.suggestionsContainer.style.display !== "none") {
+    if (this.suggestionsVisible) {
       this.updateSuggestionsPosition()
     }
   }
@@ -420,11 +421,7 @@ export class TagSelector extends Component {
     const hasText = this.tagInput.value.trim().length > 0
 
     // Handle tag navigation when suggestions are hidden, we have selected tags, and input is empty
-    if (
-      this.suggestionsContainer.style.display === "none" &&
-      this.selectedTags.length > 0 &&
-      !hasText
-    ) {
+    if (!this.suggestionsVisible && this.selectedTags.length > 0 && !hasText) {
       switch (e.key) {
         case "ArrowLeft":
           e.preventDefault()
@@ -450,7 +447,7 @@ export class TagSelector extends Component {
     }
 
     // Handle suggestion navigation when suggestions are visible
-    if (this.suggestionsContainer.style.display !== "none") {
+    if (this.suggestionsVisible) {
       // Get available tags (excluding already selected ones)
       const availableTags = this.filteredTags.filter(
         ([tag]) => !this.selectedTags.includes(tag)
@@ -676,6 +673,7 @@ export class TagSelector extends Component {
   private showSuggestions(): void {
     this.updateSuggestionsPosition()
     this.suggestionsContainer.style.display = "block"
+    this.suggestionsVisible = true
 
     // Add scroll listener only when suggestions are visible
     if (!this.scrollListener) {
@@ -743,6 +741,7 @@ export class TagSelector extends Component {
    */
   private hideSuggestions(): void {
     this.suggestionsContainer.style.display = "none"
+    this.suggestionsVisible = false
     this.selectedSuggestionIndex = -1
 
     // Remove scroll listener when suggestions are hidden
