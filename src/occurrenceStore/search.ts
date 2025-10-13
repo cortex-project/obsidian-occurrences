@@ -6,6 +6,8 @@ export interface SearchOptions {
   tags?: string[]
   linksTo?: string // File path to filter occurrences that link to this target
   toProcess?: boolean // Filter occurrences that are marked as toProcess
+  dateFrom?: Date // Start date for filtering (single day if dateTo not provided)
+  dateTo?: Date // End date for range filtering (optional)
   sortOrder?: "asc" | "desc"
   limit?: number
   offset?: number
@@ -19,6 +21,7 @@ export interface SearchResult {
 
 export class OccurrenceSearch {
   private tagIndex: Map<string, Set<string>> = new Map()
+  private dateIndex: Map<string, Set<string>> = new Map() // "YYYY-MM-DD" -> Set<path>
 
   constructor(private app: App, private items: Map<string, OccurrenceObject>) {}
 
@@ -30,6 +33,7 @@ export class OccurrenceSearch {
     action: "add" | "remove"
   ): void {
     this.updateTagIndex(occurrence, action)
+    this.updateDateIndex(occurrence, action)
   }
 
   /**
@@ -79,6 +83,14 @@ export class OccurrenceSearch {
       const titlePaths = this.searchByTitle(options.query)
       candidatePaths = new Set(
         [...candidatePaths].filter(path => titlePaths.has(path))
+      )
+    }
+
+    // Apply date filter
+    if (options.dateFrom || options.dateTo) {
+      const datePaths = this.searchByDate(options.dateFrom, options.dateTo)
+      candidatePaths = new Set(
+        [...candidatePaths].filter(path => datePaths.has(path))
       )
     }
 
@@ -135,6 +147,7 @@ export class OccurrenceSearch {
    */
   public clear(): void {
     this.tagIndex.clear()
+    this.dateIndex.clear()
   }
 
   // Private helper methods
@@ -154,6 +167,40 @@ export class OccurrenceSearch {
         tagSet.delete(occurrence.path)
       }
     })
+  }
+
+  private updateDateIndex(
+    occurrence: OccurrenceObject,
+    action: "add" | "remove"
+  ): void {
+    const dateKey = this.formatDateKey(occurrence.properties.occurredAt)
+
+    if (!this.dateIndex.has(dateKey)) {
+      this.dateIndex.set(dateKey, new Set())
+    }
+
+    const dateSet = this.dateIndex.get(dateKey)!
+
+    if (action === "add") {
+      dateSet.add(occurrence.path)
+    } else {
+      dateSet.delete(occurrence.path)
+      // Clean up empty date sets
+      if (dateSet.size === 0) {
+        this.dateIndex.delete(dateKey)
+      }
+    }
+  }
+
+  /**
+   * Format a date to a string key for indexing (YYYY-MM-DD)
+   */
+  private formatDateKey(date: Date): string {
+    const normalized = this.normalizeToMidnight(date)
+    const year = normalized.getFullYear()
+    const month = String(normalized.getMonth() + 1).padStart(2, "0")
+    const day = String(normalized.getDate()).padStart(2, "0")
+    return `${year}-${month}-${day}`
   }
 
   /**
@@ -235,5 +282,61 @@ export class OccurrenceSearch {
     }
 
     return resultPaths
+  }
+
+  /**
+   * Normalize a date to midnight in local timezone for day-level comparison
+   */
+  private normalizeToMidnight(date: Date): Date {
+    const normalized = new Date(date)
+    normalized.setHours(0, 0, 0, 0)
+    return normalized
+  }
+
+  /**
+   * Search by date or date range using the date index
+   * @param dateFrom - Start date (inclusive)
+   * @param dateTo - End date (inclusive, optional)
+   */
+  private searchByDate(dateFrom?: Date, dateTo?: Date): Set<string> {
+    const results = new Set<string>()
+
+    if (!dateFrom && !dateTo) return results
+
+    if (dateFrom && !dateTo) {
+      // Single day filter - O(1) lookup
+      const dateKey = this.formatDateKey(dateFrom)
+      const dayResults = this.dateIndex.get(dateKey)
+      if (dayResults) {
+        dayResults.forEach(path => results.add(path))
+      }
+    } else {
+      // Range query - iterate through date index keys
+      const fromMidnight = dateFrom ? this.normalizeToMidnight(dateFrom) : null
+      const toMidnight = dateTo ? this.normalizeToMidnight(dateTo) : null
+
+      for (const [dateKey, paths] of this.dateIndex) {
+        // Parse the date key back to a timestamp for comparison
+        const keyDate = new Date(dateKey + "T00:00:00")
+        const keyTime = keyDate.getTime()
+
+        if (fromMidnight && toMidnight) {
+          // Both dates provided - check if key is in range
+          if (
+            keyTime >= fromMidnight.getTime() &&
+            keyTime <= toMidnight.getTime()
+          ) {
+            paths.forEach(path => results.add(path))
+          }
+        } else if (!fromMidnight && toMidnight) {
+          // Only dateTo provided - filter up to and including that date
+          if (keyTime <= toMidnight.getTime()) {
+            paths.forEach(path => results.add(path))
+          }
+        }
+      }
+    }
+
+    return results
   }
 }
