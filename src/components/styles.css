@@ -407,3 +407,88 @@
   font-size: var(--font-ui-smaller);
   opacity: 0.7;
 }
+
+/* ========================================
+   DATE FILTER COMPONENTS
+======================================== */
+
+.date-filter-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0;
+}
+
+.date-filter-input-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 4px auto;
+  background: var(--background-modifier-form-field);
+  border: var(--input-border-width) solid var(--background-modifier-border);
+  border-radius: var(--input-radius);
+}
+
+/* Calendar icon at the start */
+.date-filter-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.date-filter-icon svg {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+/* Container for date inputs and controls */
+.date-input-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+/* Dropdown selector for "on" / "between" */
+.date-mode-toggle {
+  box-shadow: none;
+  padding: 0px;
+  flex-shrink: 0;
+}
+
+.date-mode-toggle:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+.date-mode-toggle:hover {
+  background: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
+/* Date input fields */
+.date-filter-input-container input[type="date"] {
+  border: none;
+  flex-shrink: 1;
+}
+
+/* Wrapper for "and" text and second date input */
+.date-to-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 1;
+}
+
+/* "and" text between date inputs */
+.date-and-text {
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
