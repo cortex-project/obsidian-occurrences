@@ -492,3 +492,21 @@
   color: var(--text-muted);
   flex-shrink: 0;
 }
+
+/* Period selector dropdown */
+.date-period-select {
+  box-shadow: none;
+  padding: 0px;
+  flex-shrink: 0;
+}
+
+.date-period-select:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+.date-period-select:hover {
+  background: transparent;
+  outline: none;
+  box-shadow: none;
+}
