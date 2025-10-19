@@ -15,6 +15,11 @@ export interface SearchFilters {
   dateTo: Date | null
 }
 
+export interface SearchMetadata {
+  participants: string[]
+  locations: string[]
+}
+
 export class Header extends Component {
   private headerEl: HTMLElement
   private fileSelectorButton: HTMLElement
@@ -26,6 +31,7 @@ export class Header extends Component {
   private fileSelector: FileSelector
   private tagSelector: TagSelector
   private dateFilter: DateFilter
+  private summaryEl: HTMLElement
   private onFilterChange: (filters: SearchFilters) => void
   private app: App
   private occurrenceStore: OccurrenceStore
@@ -187,6 +193,12 @@ export class Header extends Component {
       this.toggleFilter("inbox")
     })
 
+    // Create summary element
+    this.summaryEl = this.headerEl.createEl("div", {
+      cls: "occurrences-summary",
+    })
+    this.summaryEl.hide() // Initially hidden
+
     this.updateButtonStates()
   }
 
@@ -310,6 +322,127 @@ export class Header extends Component {
    */
   public updateActiveFile(): void {
     this.fileSelector.updateActiveFile()
+  }
+
+  /**
+   * Update the summary display with new data
+   */
+  public updateSummary(
+    totalCount: number,
+    metadata: SearchMetadata,
+    pagination?: { offset: number; limit: number }
+  ): void {
+    this.summaryEl.empty()
+
+    if (totalCount === 0) {
+      this.summaryEl.hide()
+      return
+    }
+
+    this.summaryEl.show()
+
+    // Create main summary line
+    const summaryLine = this.summaryEl.createEl("div", {
+      cls: "summary-line",
+    })
+
+    // Create count container
+    const countContainer = summaryLine.createEl("div", {
+      cls: "summary-count-container",
+    })
+
+    // Main count text
+    const countText = `${totalCount} Occurrence${
+      totalCount === 1 ? "" : "s"
+    } found`
+
+    countContainer.createEl("span", {
+      cls: "summary-count",
+      text: countText,
+    })
+
+    // Add pagination info if showing subset
+    if (pagination && pagination.offset > 0) {
+      const showingCount = Math.min(
+        pagination.limit,
+        totalCount - pagination.offset
+      )
+      countContainer.createEl("span", {
+        cls: "summary-pagination",
+        text: `showing ${showingCount} results`,
+      })
+    } else if (pagination && pagination.limit < totalCount) {
+      countContainer.createEl("span", {
+        cls: "summary-pagination",
+        text: `showing ${pagination.limit} results`,
+      })
+    }
+
+    // Add details expander on the right
+    const detailsElement = summaryLine.createEl("span", {
+      cls: "summary-details-text",
+    })
+
+    const detailsText = detailsElement.createEl("span", {
+      cls: "details-text",
+      text: "details",
+    })
+
+    const caret = detailsElement.createEl("span", {
+      cls: "details-caret",
+    })
+    setIcon(caret, "chevron-down")
+
+    // Create expandable details section
+    const detailsSection = this.summaryEl.createEl("div", {
+      cls: "summary-details",
+    })
+    detailsSection.hide()
+
+    // Participants row
+    if (metadata.participants.length > 0) {
+      const participantsRow = detailsSection.createEl("div", {
+        cls: "details-row",
+      })
+
+      participantsRow.createEl("span", {
+        cls: "details-label",
+        text: "Participants:",
+      })
+
+      participantsRow.createEl("span", {
+        cls: "details-value",
+        text: metadata.participants.join(", "),
+      })
+    }
+
+    // Locations row
+    if (metadata.locations.length > 0) {
+      const locationsRow = detailsSection.createEl("div", {
+        cls: "details-row",
+      })
+
+      locationsRow.createEl("span", {
+        cls: "details-label",
+        text: "Locations:",
+      })
+
+      locationsRow.createEl("span", {
+        cls: "details-value",
+        text: metadata.locations.join(", "),
+      })
+    }
+
+    // Handle details toggle
+    this.registerDomEvent(detailsElement, "click", () => {
+      if (detailsSection.isShown()) {
+        detailsSection.hide()
+        setIcon(caret, "chevron-down")
+      } else {
+        detailsSection.show()
+        setIcon(caret, "chevron-up")
+      }
+    })
   }
 
   public getElement(): HTMLElement {

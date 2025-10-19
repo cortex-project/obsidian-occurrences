@@ -10,16 +10,81 @@
   position: sticky;
   top: 0;
   z-index: 10;
-<<<<<<< HEAD
-=======
-  border-bottom: 2px solid var(--background-modifier-border);
->>>>>>> origin/main
 }
 
 .occurrences-view-content {
   overflow-y: auto;
   flex-grow: 1;
-<<<<<<< HEAD
+  padding-top: var(--size-2-2);
+}
+
+/* Summary styles */
+.occurrences-summary {
+  padding: var(--size-2-1) var(--size-2-2);
+  background: var(--background-secondary);
+  font-size: var(--font-ui-smaller);
+  font-weight: var(--font-thin);
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--size-2-2);
+}
+
+.summary-count-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--size-2-1);
+}
+
+.summary-count,
+.summary-pagination,
+.summary-details-text {
+  color: var(--text-muted);
+}
+
+.summary-pagination {
+  white-space: nowrap;
+}
+
+.summary-details-text {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--size-2-1);
+}
+
+.summary-details-text:hover {
+  color: var(--text-normal);
+}
+
+.summary-details {
+  margin-top: var(--size-2-1);
+  padding-top: var(--size-2-1);
+}
+
+.details-row {
+  display: flex;
+  margin-bottom: var(--size-2-1);
+}
+
+.details-row:last-child {
+  margin-bottom: 0;
+}
+
+.details-label {
+  color: var(--text-muted);
+  font-weight: var(--font-medium);
+  margin-right: var(--size-2-2);
+  min-width: var(--size-4-6);
+}
+
+.details-value {
+  color: var(--text-normal);
+  flex: 1;
 }
 
 .occurrences-empty-state {
@@ -28,31 +93,28 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 3rem 1.5rem;
+  padding: var(--size-4-5) var(--size-4-3);
   color: var(--text-muted);
-  min-height: 200px;
+  min-height: var(--size-4-8);
 }
 
 .empty-state-title {
-  margin: 0 0 0.75rem 0;
-  font-size: 1.25rem;
-  font-weight: 600;
+  margin: 0 0 var(--size-2-3) 0;
+  font-size: var(--font-ui-large);
+  font-weight: var(--font-semibold);
   color: var(--text-normal);
   text-align: center;
 }
 
 .empty-state-message {
-  margin: 0 0 1rem 0;
-  max-width: 400px;
-  line-height: 1.6;
+  margin: 0 0 var(--size-2-4) 0;
+  max-width: var(--size-4-8);
+  line-height: var(--line-height-normal);
 }
 
 .empty-state-suggestion {
   margin: 0;
-  font-size: 0.9rem;
-  opacity: 0.8;
+  font-size: var(--font-ui-small);
+  opacity: var(--opacity-subtle);
   font-style: italic;
-=======
-  padding-top: 8px;
->>>>>>> origin/main
 }
