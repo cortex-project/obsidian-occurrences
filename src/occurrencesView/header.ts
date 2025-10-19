@@ -1,4 +1,4 @@
-import { FileSelector, SearchBar, TagSelector } from "@/components"
+import { DateFilter, FileSelector, SearchBar, TagSelector } from "@/components"
 import { OccurrenceStore } from "@/occurrenceStore"
 import { App, Component, setIcon, setTooltip } from "obsidian"
 
@@ -10,6 +10,9 @@ export interface SearchFilters {
   inbox: boolean
   tags: boolean
   selectedTags: string[]
+  dateFilter: boolean
+  dateFrom: Date | null
+  dateTo: Date | null
 }
 
 export class Header extends Component {
@@ -18,9 +21,11 @@ export class Header extends Component {
   private searchButton: HTMLElement
   private tagButton: HTMLElement
   private inboxButton: HTMLElement
+  private dateButton: HTMLElement
   private searchBar: SearchBar
   private fileSelector: FileSelector
   private tagSelector: TagSelector
+  private dateFilter: DateFilter
   private onFilterChange: (filters: SearchFilters) => void
   private app: App
   private occurrenceStore: OccurrenceStore
@@ -32,6 +37,9 @@ export class Header extends Component {
     inbox: false,
     tags: false,
     selectedTags: [],
+    dateFilter: false,
+    dateFrom: null,
+    dateTo: null,
   }
 
   constructor(
@@ -141,6 +149,32 @@ export class Header extends Component {
     )
     this.addChild(this.tagSelector)
 
+    // Date filter button
+    this.dateButton = buttonsContainer.createEl("div", {
+      cls: "clickable-icon nav-action-button",
+      attr: { id: "date-filter" },
+    })
+    setIcon(this.dateButton, "calendar")
+    setTooltip(this.dateButton, "Toggle Date Filter")
+
+    this.registerDomEvent(this.dateButton, "click", () => {
+      this.toggleFilter("dateFilter")
+    })
+
+    // Create date filter component
+    this.dateFilter = new DateFilter(
+      navHeader,
+      (dateFrom: Date | null, dateTo: Date | null) => {
+        this.filters.dateFrom = dateFrom
+        this.filters.dateTo = dateTo
+        this.onFilterChange({ ...this.filters })
+      },
+      {
+        placeholder: "Filter by date...",
+      }
+    )
+    this.addChild(this.dateFilter)
+
     // Inbox button
     this.inboxButton = buttonsContainer.createEl("div", {
       cls: "clickable-icon nav-action-button",
@@ -162,7 +196,7 @@ export class Header extends Component {
   private toggleFilter(
     filterKey: Exclude<
       keyof SearchFilters,
-      "searchQuery" | "selectedFile" | "selectedTags"
+      "searchQuery" | "selectedFile" | "selectedTags" | "dateFrom" | "dateTo"
     >
   ): void {
     this.filters[filterKey] = !this.filters[filterKey]
@@ -199,6 +233,18 @@ export class Header extends Component {
       }
     }
 
+    // Handle date filter visibility
+    if (filterKey === "dateFilter") {
+      if (this.filters.dateFilter) {
+        this.dateFilter.show()
+      } else {
+        this.dateFilter.hide()
+        this.dateFilter.clearInput()
+        this.filters.dateFrom = null
+        this.filters.dateTo = null
+      }
+    }
+
     this.updateButtonStates()
     this.onFilterChange({ ...this.filters })
   }
@@ -226,6 +272,13 @@ export class Header extends Component {
       this.tagButton.addClass("is-active")
     } else {
       this.tagButton.removeClass("is-active")
+    }
+
+    // Update date button
+    if (this.filters.dateFilter) {
+      this.dateButton.addClass("is-active")
+    } else {
+      this.dateButton.removeClass("is-active")
     }
 
     // Update inbox button

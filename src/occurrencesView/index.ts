@@ -29,6 +29,9 @@ export class OccurrencesView extends ItemView {
     inbox: false,
     tags: false,
     selectedTags: [],
+    dateFilter: false,
+    dateFrom: null,
+    dateTo: null,
   }
 
   constructor(leaf: WorkspaceLeaf, plugin: CoretexPlugin) {
@@ -201,6 +204,16 @@ export class OccurrencesView extends ItemView {
       )
     }
 
+    // Apply date filter if active
+    if (this.currentFilters.dateFilter) {
+      if (this.currentFilters.dateFrom) {
+        searchOptions.dateFrom = this.currentFilters.dateFrom
+      }
+      if (this.currentFilters.dateTo) {
+        searchOptions.dateTo = this.currentFilters.dateTo
+      }
+    }
+
     // Give the list instance based on current filters
     const searchResult = this.occurrenceStore.search(searchOptions)
 
@@ -349,6 +362,22 @@ export class OccurrencesView extends ItemView {
       ) {
         const tagList = this.currentFilters.selectedTags.join(", ")
         filterDescriptions.push(`with tags "${tagList}"`)
+      }
+      if (
+        this.currentFilters.dateFilter &&
+        (this.currentFilters.dateFrom || this.currentFilters.dateTo)
+      ) {
+        if (this.currentFilters.dateFrom && this.currentFilters.dateTo) {
+          const fromStr = this.currentFilters.dateFrom.toLocaleDateString()
+          const toStr = this.currentFilters.dateTo.toLocaleDateString()
+          filterDescriptions.push(`between ${fromStr} and ${toStr}`)
+        } else if (this.currentFilters.dateFrom) {
+          const dateStr = this.currentFilters.dateFrom.toLocaleDateString()
+          filterDescriptions.push(`on ${dateStr}`)
+        } else if (this.currentFilters.dateTo) {
+          const dateStr = this.currentFilters.dateTo.toLocaleDateString()
+          filterDescriptions.push(`up to ${dateStr}`)
+        }
       }
 
       let message = "Your current search did not return any results."
