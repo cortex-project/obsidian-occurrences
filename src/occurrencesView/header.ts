@@ -199,89 +199,98 @@ export class Header extends Component {
       "searchQuery" | "selectedFile" | "selectedTags" | "dateFrom" | "dateTo"
     >
   ): void {
-    this.filters[filterKey] = !this.filters[filterKey]
-
     // Handle search bar visibility
     if (filterKey === "search") {
-      if (this.filters.search) {
-        this.searchBar.show()
-      } else {
+      if (this.searchBar.isVisible()) {
         this.searchBar.hide()
         this.filters.searchQuery = ""
+      } else {
+        this.searchBar.show()
       }
     }
 
     // Handle file selector visibility
     if (filterKey === "currentFile") {
-      if (this.filters.currentFile) {
-        this.fileSelector.show()
-      } else {
+      if (this.fileSelector.isVisible()) {
         this.fileSelector.hide()
         this.fileSelector.clearInput()
         this.filters.selectedFile = null
+      } else {
+        this.fileSelector.show()
       }
     }
 
     // Handle tag selector visibility
     if (filterKey === "tags") {
-      if (this.filters.tags) {
-        this.tagSelector.show()
-      } else {
+      if (this.tagSelector.isVisible()) {
         this.tagSelector.hide()
         this.tagSelector.clearInput()
         this.filters.selectedTags = []
+      } else {
+        this.tagSelector.show()
       }
     }
 
     // Handle date filter visibility
     if (filterKey === "dateFilter") {
-      if (this.filters.dateFilter) {
-        this.dateFilter.show()
-      } else {
+      if (this.dateFilter.isVisible()) {
         this.dateFilter.hide()
         this.dateFilter.clearInput()
         this.filters.dateFrom = null
         this.filters.dateTo = null
+      } else {
+        this.dateFilter.show()
       }
     }
+
+    // Handle inbox toggle (no visible component)
+    if (filterKey === "inbox") {
+      this.filters.inbox = !this.filters.inbox
+    }
+
+    // Update the filters state to match actual component visibility
+    this.filters.search = this.searchBar.isVisible()
+    this.filters.currentFile = this.fileSelector.isVisible()
+    this.filters.tags = this.tagSelector.isVisible()
+    this.filters.dateFilter = this.dateFilter.isVisible()
 
     this.updateButtonStates()
     this.onFilterChange({ ...this.filters })
   }
 
   /**
-   * Update button visual states based on current filters
+   * Update button visual states based on actual component visibility
    */
   private updateButtonStates(): void {
-    // Update search button
-    if (this.filters.search) {
+    // Update search button based on actual search bar visibility
+    if (this.searchBar.isVisible()) {
       this.searchButton.addClass("is-active")
     } else {
       this.searchButton.removeClass("is-active")
     }
 
-    // Update file selector button
-    if (this.filters.currentFile) {
+    // Update file selector button based on actual file selector visibility
+    if (this.fileSelector.isVisible()) {
       this.fileSelectorButton.addClass("is-active")
     } else {
       this.fileSelectorButton.removeClass("is-active")
     }
 
-    // Update tag button
-    if (this.filters.tags) {
+    // Update tag button based on actual tag selector visibility
+    if (this.tagSelector.isVisible()) {
       this.tagButton.addClass("is-active")
     } else {
       this.tagButton.removeClass("is-active")
     }
 
-    // Update date button
-    if (this.filters.dateFilter) {
+    // Update date button based on actual date filter visibility
+    if (this.dateFilter.isVisible()) {
       this.dateButton.addClass("is-active")
     } else {
       this.dateButton.removeClass("is-active")
     }
 
-    // Update inbox button
+    // Inbox button doesn't have a visible component, so keep current logic
     if (this.filters.inbox) {
       this.inboxButton.addClass("is-active")
     } else {
