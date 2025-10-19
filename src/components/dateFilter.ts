@@ -181,19 +181,22 @@ export class DateFilter extends Component {
     this.isRangeMode = mode === "between"
     this.isPeriodMode = mode === "during"
 
-    // Hide all optional elements first
+    // Reset all elements to their default state
+    this.fromInput.style.display = "block"
     this.toInputWrapper.style.display = "none"
     this.periodWrapper.style.display = "none"
 
     if (this.isRangeMode) {
+      // Show both date inputs for range mode
       this.toInputWrapper.style.display = "flex"
       this.fromInput.setAttribute("aria-label", "Start date")
     } else if (this.isPeriodMode) {
-      this.periodWrapper.style.display = "flex"
+      // Hide date input and show period selector
       this.fromInput.style.display = "none"
+      this.periodWrapper.style.display = "flex"
       this.handlePeriodChange()
     } else {
-      this.fromInput.style.display = "block"
+      // Single date mode - clear other inputs
       this.fromInput.setAttribute("aria-label", "Date")
       this.toInput.value = ""
       this.periodSelector.value = ""
