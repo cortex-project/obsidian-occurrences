@@ -48,6 +48,90 @@ export class Header extends Component {
     dateTo: null,
   }
 
+  /**
+   * Setup toggle functionality for expand/collapse button
+   */
+  private setupToggleButton(
+    moreButton: HTMLElement,
+    textSpan: HTMLElement,
+    visibleText: string,
+    fullText: string
+  ): void {
+    this.registerDomEvent(moreButton, "click", () => {
+      const isExpanded = moreButton.textContent?.includes("less")
+      textSpan.textContent = isExpanded ? visibleText : fullText
+      moreButton.textContent = isExpanded ? " more..." : " less"
+    })
+  }
+
+  /**
+   * Create a simple display element for a list of items
+   */
+  private createItemDisplay(
+    container: HTMLElement,
+    items: string[],
+    label: string
+  ): void {
+    if (items.length === 0) return
+
+    const row = container.createEl("div", {
+      cls: "details-row",
+    })
+
+    const labelEl = row.createEl("span", {
+      cls: "details-label",
+    })
+
+    // Add icon based on label type
+    if (label === "Participants") {
+      const iconEl = labelEl.createEl("span", {
+        cls: "details-label-icon",
+      })
+      setIcon(iconEl, "users")
+      labelEl.createEl("span", {
+        text: ` ${label} (${items.length}):`,
+      })
+    } else if (label === "Locations") {
+      const iconEl = labelEl.createEl("span", {
+        cls: "details-label-icon",
+      })
+      setIcon(iconEl, "map-pin")
+      labelEl.createEl("span", {
+        text: ` ${label} (${items.length}):`,
+      })
+    } else {
+      // Fallback for other labels
+      labelEl.createEl("span", {
+        text: `${label} (${items.length}):`,
+      })
+    }
+
+    const valueContainer = row.createEl("div", {
+      cls: "details-value",
+    })
+
+    // Limit to first 5 items by default
+    const maxItems = 5
+    const visibleItems = items.slice(0, maxItems)
+    const hiddenCount = items.length - maxItems
+
+    const visibleText = visibleItems.join(", ")
+    const fullText = items.join(", ")
+    const textSpan = valueContainer.createEl("span", {
+      text: visibleText,
+    })
+
+    // Show "more..." if there are additional items
+    if (hiddenCount > 0) {
+      const moreButton = valueContainer.createEl("span", {
+        cls: "details-more-button",
+        text: " more...",
+      })
+
+      this.setupToggleButton(moreButton, textSpan, visibleText, fullText)
+    }
+  }
+
   constructor(
     container: HTMLElement,
     app: App,
@@ -399,39 +483,15 @@ export class Header extends Component {
     })
     detailsSection.hide()
 
-    // Participants row
-    if (metadata.participants.length > 0) {
-      const participantsRow = detailsSection.createEl("div", {
-        cls: "details-row",
-      })
+    // Participants row with item display
+    this.createItemDisplay(
+      detailsSection,
+      metadata.participants,
+      "Participants"
+    )
 
-      participantsRow.createEl("span", {
-        cls: "details-label",
-        text: "Participants:",
-      })
-
-      participantsRow.createEl("span", {
-        cls: "details-value",
-        text: metadata.participants.join(", "),
-      })
-    }
-
-    // Locations row
-    if (metadata.locations.length > 0) {
-      const locationsRow = detailsSection.createEl("div", {
-        cls: "details-row",
-      })
-
-      locationsRow.createEl("span", {
-        cls: "details-label",
-        text: "Locations:",
-      })
-
-      locationsRow.createEl("span", {
-        cls: "details-value",
-        text: metadata.locations.join(", "),
-      })
-    }
+    // Locations row with item display
+    this.createItemDisplay(detailsSection, metadata.locations, "Locations")
 
     // Handle details toggle
     this.registerDomEvent(detailsElement, "click", () => {

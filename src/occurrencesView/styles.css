@@ -9,7 +9,7 @@
 .occurrences-view-header {
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: var(--layer-tooltip);
 }
 
 .occurrences-view-content {
@@ -68,6 +68,7 @@
 
 .details-row {
   display: flex;
+  flex-direction: column;
   margin-bottom: var(--size-2-1);
 }
 
@@ -78,13 +79,44 @@
 .details-label {
   color: var(--text-muted);
   font-weight: var(--font-medium);
-  margin-right: var(--size-2-2);
-  min-width: var(--size-4-6);
+  margin-top: var(--size-2-2);
+  display: flex;
+  align-items: center;
+}
+
+.details-label-icon {
+  margin-right: var(--size-2-1);
+  display: flex;
+  align-items: center;
+}
+
+.details-label-icon svg {
+  height: var(--icon-xs);
+  width: var(--icon-xs);
 }
 
 .details-value {
   color: var(--text-normal);
-  flex: 1;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: var(--line-height-normal);
+}
+
+.details-more-button {
+  color: var(--text-accent);
+  cursor: pointer;
+  font-weight: var(--font-medium);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color var(--transition-fast);
+}
+
+.details-more-button:hover {
+  text-decoration-color: var(--text-accent);
+}
+
+.details-more-button.expanded {
+  color: var(--text-muted);
 }
 
 .occurrences-empty-state {
