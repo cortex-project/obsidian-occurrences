@@ -26,10 +26,20 @@ export class StoreOperations {
    * Update an occurrence in the store and update search indexes
    */
   public updateOccurrence(item: OccurrenceObject): void {
-    // Update search indexes for the updated item
-    this.searchService.updateIndexes(item, "remove") // Remove old version
+    // Get the old item before updating to properly remove old indexes
+    const oldItem = this.items.get(item.path)
+
+    // Update search indexes for the old item (remove old tags/indexes)
+    if (oldItem) {
+      this.searchService.updateIndexes(oldItem, "remove")
+    }
+
+    // Update the item in the store
     this.items.set(item.path, item)
-    this.searchService.updateIndexes(item, "add") // Add updated version
+
+    // Update search indexes for the new item (add new tags/indexes)
+    this.searchService.updateIndexes(item, "add")
+
     this.eventHandler?.trigger("item-updated", item)
   }
 

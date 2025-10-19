@@ -120,21 +120,7 @@ export class OccurrencesView extends ItemView {
       this.occurrenceStore.on(
         "item-updated",
         (occurrence: OccurrenceObject) => {
-          // Skip if the occurrence is not in the current filtered results
-          if (!this.occurrenceListItems.get(occurrence.file.path)) return
-
-          // Remove the old occurrence item
-          this.occurrenceListItems.delete(occurrence.file.path)
-          this.occurrenceList.removeItem(occurrence.file.path)
-
-          // Add the new occurrence item if it still matches current filters
-          if (this.matchesCurrentFilters(occurrence)) {
-            const listItem = this.occurrenceList.addItem(occurrence)
-            this.occurrenceListItems.set(occurrence.file.path, listItem)
-          }
-
-          // Update active state
-          this.updateActiveFileHighlight(occurrence.file.path)
+          this.refreshFilteredResults()
         }
       )
     )
@@ -150,14 +136,7 @@ export class OccurrencesView extends ItemView {
     // Update occurrence list item when the occurrence data is added
     this.registerEvent(
       this.occurrenceStore.on("item-added", (occurrence: OccurrenceObject) => {
-        // Only add if it matches current filters
-        if (this.matchesCurrentFilters(occurrence)) {
-          const listItem = this.occurrenceList.addItem(occurrence)
-          this.occurrenceListItems.set(occurrence.file.path, listItem)
-
-          // Update active state for new item
-          this.updateActiveFileHighlight(occurrence.file.path)
-        }
+        this.refreshFilteredResults()
       })
     )
 
@@ -229,6 +208,136 @@ export class OccurrencesView extends ItemView {
     // Initialize active state after loading
     this.currentActiveFile = this.plugin.app.workspace.getActiveFile()
     this.updateAllActiveStates()
+  }
+
+  /**
+   * Refresh the filtered results by running a new search and applying incremental updates
+   * This preserves scroll position and UI state while handling filter changes
+   */
+  private refreshFilteredResults(): void {
+    // Wait for occurrence store to initialize before searching
+    if (!this.plugin.occurrenceStore.isLoaded) {
+      return
+    }
+
+    // Build search options based on current filters
+    const searchOptions: any = {
+      query: this.currentFilters.searchQuery,
+    }
+
+    // Apply file filter if active (either current file mode or manual file selection)
+    if (this.currentFilters.currentFile || this.currentFilters.selectedFile) {
+      searchOptions.linksTo = this.currentFilters.selectedFile
+    }
+
+    // Apply inbox filter if active
+    if (this.currentFilters.inbox) {
+      searchOptions.toProcess = true
+    }
+
+    // Apply tag filter if active
+    if (
+      this.currentFilters.tags &&
+      this.currentFilters.selectedTags.length > 0
+    ) {
+      // Remove # prefix from tags before searching
+      searchOptions.tags = this.currentFilters.selectedTags.map(tag =>
+        tag.startsWith("#") ? tag.slice(1) : tag
+      )
+    }
+
+    // Apply date filter if active
+    if (this.currentFilters.dateFilter) {
+      if (this.currentFilters.dateFrom) {
+        searchOptions.dateFrom = this.currentFilters.dateFrom
+      }
+      if (this.currentFilters.dateTo) {
+        searchOptions.dateTo = this.currentFilters.dateTo
+      }
+    }
+
+    // Get new filtered results from store
+    const searchResult = this.occurrenceStore.search(searchOptions)
+
+    // Diff against current state
+    const currentPaths = new Set(this.occurrenceListItems.keys())
+    const newPaths = new Set(searchResult.items.map(item => item.file.path))
+
+    // Items to remove (were visible, now not)
+    const toRemove = [...currentPaths].filter(path => !newPaths.has(path))
+
+    // Items to add (weren't visible, now are)
+    const toAdd = searchResult.items.filter(
+      item => !currentPaths.has(item.file.path)
+    )
+
+    // Items to update (were visible, still are, but data changed)
+    const toUpdate = searchResult.items.filter(
+      item => currentPaths.has(item.file.path) && this.hasItemChanged(item)
+    )
+
+    // Apply changes incrementally
+    toRemove.forEach(path => this.removeItemFromList(path))
+    toAdd.forEach(occurrence => this.addItemToList(occurrence))
+    toUpdate.forEach(occurrence => this.updateItemInList(occurrence))
+
+    // Update empty state
+    this.updateEmptyState(searchResult.items.length === 0)
+
+    // Update active states for all items
+    this.updateAllActiveStates()
+  }
+
+  /**
+   * Check if an item has changed by comparing with the current list item
+   */
+  private hasItemChanged(occurrence: OccurrenceObject): boolean {
+    const currentItem = this.occurrenceListItems.get(occurrence.file.path)
+    if (!currentItem) return false
+
+    const currentOccurrence = currentItem.getOccurrence()
+
+    // Compare key properties that might affect display
+    return (
+      currentOccurrence.title !== occurrence.title ||
+      currentOccurrence.properties.occurredAt.getTime() !==
+        occurrence.properties.occurredAt.getTime() ||
+      currentOccurrence.properties.toProcess !==
+        occurrence.properties.toProcess ||
+      JSON.stringify(currentOccurrence.properties.tags) !==
+        JSON.stringify(occurrence.properties.tags)
+    )
+  }
+
+  /**
+   * Remove an item from the list
+   */
+  private removeItemFromList(path: string): void {
+    this.occurrenceListItems.delete(path)
+    this.occurrenceList.removeItem(path)
+  }
+
+  /**
+   * Add an item to the list
+   */
+  private addItemToList(occurrence: OccurrenceObject): void {
+    const listItem = this.occurrenceList.addItem(occurrence)
+    this.occurrenceListItems.set(occurrence.file.path, listItem)
+    this.updateActiveFileHighlight(occurrence.file.path)
+  }
+
+  /**
+   * Update an existing item in the list
+   */
+  private updateItemInList(occurrence: OccurrenceObject): void {
+    // Remove old item
+    this.occurrenceListItems.delete(occurrence.file.path)
+    this.occurrenceList.removeItem(occurrence.file.path)
+
+    // Add updated item
+    const listItem = this.occurrenceList.addItem(occurrence)
+    this.occurrenceListItems.set(occurrence.file.path, listItem)
+    this.updateActiveFileHighlight(occurrence.file.path)
   }
 
   private matchesCurrentFilters(occurrence: OccurrenceObject): boolean {
