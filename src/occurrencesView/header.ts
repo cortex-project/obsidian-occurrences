@@ -35,6 +35,7 @@ export class Header extends Component {
   private onFilterChange: (filters: SearchFilters) => void
   private app: App
   private occurrenceStore: OccurrenceStore
+  private detailsExpanded: boolean = false
   private filters: SearchFilters = {
     search: false,
     searchQuery: "",
@@ -481,7 +482,15 @@ export class Header extends Component {
     const detailsSection = this.summaryEl.createEl("div", {
       cls: "summary-details",
     })
-    detailsSection.hide()
+
+    // Set initial state based on stored expansion state
+    if (this.detailsExpanded) {
+      detailsSection.show()
+      setIcon(caret, "chevron-up")
+    } else {
+      detailsSection.hide()
+      setIcon(caret, "chevron-down")
+    }
 
     // Participants row with item display
     this.createItemDisplay(
@@ -498,9 +507,11 @@ export class Header extends Component {
       if (detailsSection.isShown()) {
         detailsSection.hide()
         setIcon(caret, "chevron-down")
+        this.detailsExpanded = false
       } else {
         detailsSection.show()
         setIcon(caret, "chevron-up")
+        this.detailsExpanded = true
       }
     })
   }
