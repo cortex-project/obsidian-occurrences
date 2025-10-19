@@ -89,7 +89,6 @@ export class OccurrencesView extends ItemView {
         groupBy: "day",
         listItemOptions: {
           showTime: true,
-          showProcessIcon: true,
         },
       }
     )

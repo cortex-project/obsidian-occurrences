@@ -90,6 +90,19 @@
   width: 100%;
 }
 
+/* Font variation for toProcess items - only apply when not hovered or active */
+.nav-file-title-content.occurrence-to-process {
+  font-weight: var(--font-thin);
+  font-size: var(--font-ui-smaller);
+}
+
+/* Reset font variations during hover and active states to match normal behavior */
+.list-item:hover .nav-file-title-content.occurrence-to-process,
+.list-item.is-active .nav-file-title-content.occurrence-to-process {
+  font-weight: inherit;
+  font-size: inherit;
+}
+
 /* ========================================
    FILE SELECTOR COMPONENTS
 ======================================== */

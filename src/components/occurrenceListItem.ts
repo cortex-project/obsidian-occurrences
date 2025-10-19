@@ -5,7 +5,6 @@ import { OccurrenceObject } from "@/types"
 import { App, Menu, TFile, setTooltip } from "obsidian"
 
 export interface OccurrenceListItemOptions {
-  showProcessIcon?: boolean
   showDate?: boolean
   showTime?: boolean
 }
@@ -36,7 +35,6 @@ export class OccurrenceListItem extends ListItem<OccurrenceObject> {
 
     // Set default options
     this.options = {
-      showProcessIcon: false,
       showDate: false,
       showTime: false,
       ...options,
@@ -143,11 +141,9 @@ export class OccurrenceListItem extends ListItem<OccurrenceObject> {
     this.menu = new Menu()
     this.configureMenu()
 
-    // Add to process icon if enabled
-    if (this.options.showProcessIcon) {
-      this.addIconBefore(
-        this.occurrence.properties.toProcess ? "circle-dashed" : "circle-dot"
-      )
+    // Apply font variation for toProcess items instead of icons
+    if (this.occurrence.properties.toProcess) {
+      this.getTitleEl().addClass("occurrence-to-process")
     }
 
     // Add location icon
