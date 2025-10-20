@@ -15,8 +15,16 @@ export interface SearchOptions {
 
 export interface SearchResult {
   items: OccurrenceObject[]
-  total: number
-  hasMore: boolean
+  pagination: {
+    total: number
+    hasMore: boolean
+    offset: number
+    limit: number
+  }
+  metadata: {
+    participants: string[]
+    locations: string[]
+  }
 }
 
 export class OccurrenceSearch {
@@ -121,10 +129,18 @@ export class OccurrenceSearch {
     const limit = options.limit || 100
     const paginatedResults = finalResults.slice(offset, offset + limit)
 
+    // Calculate metadata statistics
+    const metadata = this.calculateMetadata(finalResults)
+
     return {
       items: paginatedResults,
-      total,
-      hasMore: offset + limit < total,
+      pagination: {
+        total,
+        hasMore: offset + limit < total,
+        offset,
+        limit,
+      },
+      metadata,
     }
   }
 
@@ -148,6 +164,34 @@ export class OccurrenceSearch {
   public clear(): void {
     this.tagIndex.clear()
     this.dateIndex.clear()
+  }
+
+  /**
+   * Calculate metadata statistics for a set of occurrences
+   */
+  private calculateMetadata(occurrences: OccurrenceObject[]): {
+    participants: string[]
+    locations: string[]
+  } {
+    const uniqueParticipants = new Set<string>()
+    const uniqueLocations = new Set<string>()
+
+    for (const occurrence of occurrences) {
+      // Collect unique participants
+      occurrence.properties.participants?.forEach(participant => {
+        uniqueParticipants.add(participant.target)
+      })
+
+      // Collect unique locations
+      if (occurrence.properties.location?.target) {
+        uniqueLocations.add(occurrence.properties.location.target)
+      }
+    }
+
+    return {
+      participants: Array.from(uniqueParticipants).sort(),
+      locations: Array.from(uniqueLocations).sort(),
+    }
   }
 
   // Private helper methods

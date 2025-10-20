@@ -195,6 +195,13 @@ export class OccurrencesView extends ItemView {
     // Give the list instance based on current filters
     const searchResult = this.occurrenceStore.search(searchOptions)
 
+    // Update summary in header
+    this.header.updateSummary(
+      searchResult.pagination.total,
+      searchResult.metadata,
+      searchResult.pagination
+    )
+
     // Update empty state
     this.updateEmptyState(searchResult.items.length === 0)
 
@@ -257,6 +264,13 @@ export class OccurrencesView extends ItemView {
 
     // Get new filtered results from store
     const searchResult = this.occurrenceStore.search(searchOptions)
+
+    // Update summary in header
+    this.header.updateSummary(
+      searchResult.pagination.total,
+      searchResult.metadata,
+      searchResult.pagination
+    )
 
     // Diff against current state
     const currentPaths = new Set(this.occurrenceListItems.keys())
