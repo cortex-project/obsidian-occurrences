@@ -50,23 +50,46 @@ export class Header extends Component {
   }
 
   /**
-   * Setup toggle functionality for expand/collapse button
+   * Create a clickable link element with hover preview and click handling
    */
-  private setupToggleButton(
-    moreButton: HTMLElement,
-    textSpan: HTMLElement,
-    visibleText: string,
-    fullText: string
-  ): void {
-    this.registerDomEvent(moreButton, "click", () => {
-      const isExpanded = moreButton.textContent?.includes("less")
-      textSpan.textContent = isExpanded ? visibleText : fullText
-      moreButton.textContent = isExpanded ? " more..." : " less"
+  private createClickableLink(
+    container: HTMLElement,
+    target: string,
+    index: number,
+    maxItems: number
+  ): HTMLElement {
+    const linkEl = container.createEl("a", {
+      cls: "internal-link",
+      text: target,
+      attr: {
+        "data-href": target,
+        "aria-label": `Open ${target}`,
+        "data-item-index": index.toString(),
+      },
     })
+
+    // Add click handler
+    this.registerDomEvent(linkEl, "click", event => {
+      event.preventDefault()
+      this.app.workspace.openLinkText(target, "", false)
+    })
+
+    // Add hover preview
+    this.registerDomEvent(linkEl, "mouseover", event => {
+      this.app.workspace.trigger("hover-link", {
+        event: event,
+        source: "file-explorer",
+        hoverParent: linkEl,
+        targetEl: linkEl,
+        linktext: target,
+      })
+    })
+
+    return linkEl
   }
 
   /**
-   * Create a simple display element for a list of items
+   * Create a display element for a list of items with clickable links
    */
   private createItemDisplay(
     container: HTMLElement,
@@ -111,15 +134,19 @@ export class Header extends Component {
       cls: "details-value",
     })
 
-    // Limit to first 5 items by default
-    const maxItems = 5
-    const visibleItems = items.slice(0, maxItems)
+    // Set the default number of visible items
+    const maxItems = 8
     const hiddenCount = items.length - maxItems
 
-    const visibleText = visibleItems.join(", ")
-    const fullText = items.join(", ")
-    const textSpan = valueContainer.createEl("span", {
-      text: visibleText,
+    // Create visible items as clickable links
+    const visibleItems = items.slice(0, maxItems)
+    visibleItems.forEach((target, index) => {
+      this.createClickableLink(valueContainer, target, index, maxItems)
+
+      // Add comma separator (except for last visible item)
+      if (index < visibleItems.length - 1) {
+        valueContainer.createEl("span", { text: ", " })
+      }
     })
 
     // Show "more..." if there are additional items
@@ -129,7 +156,49 @@ export class Header extends Component {
         text: " more...",
       })
 
-      this.setupToggleButton(moreButton, textSpan, visibleText, fullText)
+      // Create hidden section with all remaining items
+      const hiddenSection = valueContainer.createEl("span", {
+        cls: "details-hidden-section",
+      })
+      hiddenSection.style.display = "none"
+
+      // Add comma before hidden section if there are visible items
+      if (visibleItems.length > 0) {
+        hiddenSection.createEl("span", { text: ", " })
+      }
+
+      // Add all hidden items to the hidden section
+      items.slice(maxItems).forEach((target, index) => {
+        this.createClickableLink(
+          hiddenSection,
+          target,
+          maxItems + index,
+          maxItems
+        )
+
+        // Add comma separator (except for last hidden item)
+        if (index < items.slice(maxItems).length - 1) {
+          hiddenSection.createEl("span", { text: ", " })
+        }
+      })
+
+      // Add "less" button at the end of the hidden section
+      const lessButton = hiddenSection.createEl("span", {
+        cls: "details-more-button",
+        text: " less",
+      })
+
+      // Simple toggle functionality
+      this.registerDomEvent(moreButton, "click", () => {
+        hiddenSection.style.display = "inline"
+        moreButton.style.display = "none"
+      })
+
+      // Also handle clicks on the "less" button
+      this.registerDomEvent(lessButton, "click", () => {
+        hiddenSection.style.display = "none"
+        moreButton.style.display = "inline"
+      })
     }
   }
 

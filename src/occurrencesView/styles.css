@@ -119,6 +119,31 @@
   color: var(--text-muted);
 }
 
+/* Clickable link styles for participants and locations */
+.details-value .internal-link {
+  color: var(--text-normal);
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: var(--radius-s);
+  padding: 0 var(--size-2-1);
+  margin: 0 calc(var(--size-2-1) * -1);
+  transition: background-color var(--transition-fast);
+}
+
+.details-value .internal-link:hover {
+  background-color: var(--background-modifier-hover);
+  text-decoration: none;
+}
+
+.details-value .internal-link:active {
+  background-color: var(--background-modifier-active);
+}
+
+/* Hidden items styling */
+.details-item-hidden {
+  display: none !important;
+}
+
 .occurrences-empty-state {
   display: flex;
   flex-direction: column;
