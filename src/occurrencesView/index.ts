@@ -3,7 +3,12 @@ import CoretexPlugin from "@/main"
 import { OccurrenceStore } from "@/occurrenceStore"
 import { OccurrenceObject } from "@/types"
 import { ItemView, TFile, WorkspaceLeaf } from "obsidian"
-import { Header, SearchFilters } from "./header"
+import { EmptyState } from "./components/emptyState"
+import { Header } from "./header"
+import { EventService } from "./services/eventService"
+import { FilterService } from "./services/filterService"
+import { SearchService } from "./services/searchService"
+import { SearchFilters } from "./types"
 
 export const OCCURRENCES_VIEW = "occurrences-view"
 
@@ -17,28 +22,35 @@ export class OccurrencesView extends ItemView {
   private occurrenceList: OccurrenceList
   private occurrenceStore: OccurrenceStore
   private occurrenceListItems: Map<string, OccurrenceListItem> = new Map()
-  private emptyStateEl: HTMLElement
+  private emptyState: EmptyState
+
+  // Services
+  private filterService: FilterService
+  private searchService: SearchService
+  private eventService: EventService
 
   // State
   private currentActiveFile: TFile | null = null
-  private currentFilters: SearchFilters = {
-    search: false,
-    searchQuery: "",
-    currentFile: false,
-    selectedFile: null,
-    inbox: false,
-    tags: false,
-    selectedTags: [],
-    dateFilter: false,
-    dateFrom: null,
-    dateTo: null,
-  }
 
   constructor(leaf: WorkspaceLeaf, plugin: CoretexPlugin) {
     super(leaf)
     this.plugin = plugin
     this.app = this.plugin.app
     this.occurrenceStore = plugin.occurrenceStore
+
+    // Initialize services
+    this.filterService = new FilterService(filters =>
+      this.handleFilterChange(filters)
+    )
+    this.searchService = new SearchService(this.occurrenceStore)
+    this.eventService = new EventService(this.occurrenceStore, this.app, {
+      onStoreLoaded: () => this.loadAndRenderOccurrences(),
+      onItemUpdated: () => this.refreshFilteredResults(),
+      onItemRemoved: (path: string) => this.removeItemFromList(path),
+      onItemAdded: () => this.refreshFilteredResults(),
+      onActiveFileChange: (newActiveFile: TFile | null) =>
+        this.onActiveFileChange(newActiveFile),
+    })
   }
 
   getViewType(): string {
@@ -63,6 +75,7 @@ export class OccurrencesView extends ItemView {
       container as HTMLElement,
       this.app,
       this.occurrenceStore,
+      this.filterService,
       filters => this.handleFilterChange(filters)
     )
     this.addChild(this.header)
@@ -72,11 +85,9 @@ export class OccurrencesView extends ItemView {
       cls: "view-content",
     })
 
-    // Create empty state element
-    this.emptyStateEl = this.contentEl.createEl("div", {
-      cls: "occurrences-empty-state",
-    })
-    this.emptyStateEl.hide()
+    // Create empty state component
+    this.emptyState = new EmptyState(this.contentEl)
+    this.addChild(this.emptyState)
 
     // Create unified occurrence list
     const occurrencesContainer = this.contentEl.createEl("div", {
@@ -95,56 +106,15 @@ export class OccurrencesView extends ItemView {
     this.addChild(this.occurrenceList)
 
     // Register events
-    this.registerEvents()
+    this.eventService.registerEvents()
+    this.addChild(this.eventService)
 
     // Load initial occurrences
     this.loadAndRenderOccurrences()
   }
 
   private handleFilterChange(filters: SearchFilters): void {
-    this.currentFilters = { ...filters }
     this.loadAndRenderOccurrences()
-  }
-
-  private registerEvents(): void {
-    // Load occurrences when the occurrence store is loaded
-    this.registerEvent(
-      this.occurrenceStore.on("loaded", () => {
-        this.loadAndRenderOccurrences()
-      })
-    )
-
-    // Update occurrence list item when the occurrence data is updated
-    this.registerEvent(
-      this.occurrenceStore.on(
-        "item-updated",
-        (occurrence: OccurrenceObject) => {
-          this.refreshFilteredResults()
-        }
-      )
-    )
-
-    // Remove occurrence list item when the occurrence data is removed
-    this.registerEvent(
-      this.occurrenceStore.on("item-removed", (path: string) => {
-        this.occurrenceListItems.delete(path)
-        this.occurrenceList.removeItem(path)
-      })
-    )
-
-    // Update occurrence list item when the occurrence data is added
-    this.registerEvent(
-      this.occurrenceStore.on("item-added", (occurrence: OccurrenceObject) => {
-        this.refreshFilteredResults()
-      })
-    )
-
-    // Track active file changes for highlighting
-    this.registerEvent(
-      this.plugin.app.workspace.on("active-leaf-change", () => {
-        this.onActiveFileChange()
-      })
-    )
   }
 
   private loadAndRenderOccurrences(): void {
@@ -152,48 +122,15 @@ export class OccurrencesView extends ItemView {
     this.occurrenceList.empty()
 
     // Wait for occurrence store to initialize before searching
-    if (!this.plugin.occurrenceStore.isLoaded) {
+    if (!this.searchService.isStoreLoaded()) {
       return
     }
 
-    // Build search options based on current filters
-    const searchOptions: any = {
-      query: this.currentFilters.searchQuery,
-    }
+    // Build search options from current filters
+    const searchOptions = this.filterService.buildSearchOptions()
 
-    // Apply file filter if active (either current file mode or manual file selection)
-    if (this.currentFilters.currentFile || this.currentFilters.selectedFile) {
-      searchOptions.linksTo = this.currentFilters.selectedFile
-    }
-
-    // Apply inbox filter if active
-    if (this.currentFilters.inbox) {
-      searchOptions.toProcess = true
-    }
-
-    // Apply tag filter if active
-    if (
-      this.currentFilters.tags &&
-      this.currentFilters.selectedTags.length > 0
-    ) {
-      // Remove # prefix from tags before searching
-      searchOptions.tags = this.currentFilters.selectedTags.map(tag =>
-        tag.startsWith("#") ? tag.slice(1) : tag
-      )
-    }
-
-    // Apply date filter if active
-    if (this.currentFilters.dateFilter) {
-      if (this.currentFilters.dateFrom) {
-        searchOptions.dateFrom = this.currentFilters.dateFrom
-      }
-      if (this.currentFilters.dateTo) {
-        searchOptions.dateTo = this.currentFilters.dateTo
-      }
-    }
-
-    // Give the list instance based on current filters
-    const searchResult = this.occurrenceStore.search(searchOptions)
+    // Execute search
+    const searchResult = this.searchService.search(searchOptions)
 
     // Update summary in header
     this.header.updateSummary(
@@ -203,7 +140,10 @@ export class OccurrencesView extends ItemView {
     )
 
     // Update empty state
-    this.updateEmptyState(searchResult.items.length === 0)
+    this.emptyState.updateEmptyState(
+      searchResult.items.length === 0,
+      this.filterService.getFilters()
+    )
 
     // Add occurrences to the list
     for (const occurrence of searchResult.items) {
@@ -222,48 +162,15 @@ export class OccurrencesView extends ItemView {
    */
   private refreshFilteredResults(): void {
     // Wait for occurrence store to initialize before searching
-    if (!this.plugin.occurrenceStore.isLoaded) {
+    if (!this.searchService.isStoreLoaded()) {
       return
     }
 
-    // Build search options based on current filters
-    const searchOptions: any = {
-      query: this.currentFilters.searchQuery,
-    }
+    // Build search options from current filters
+    const searchOptions = this.filterService.buildSearchOptions()
 
-    // Apply file filter if active (either current file mode or manual file selection)
-    if (this.currentFilters.currentFile || this.currentFilters.selectedFile) {
-      searchOptions.linksTo = this.currentFilters.selectedFile
-    }
-
-    // Apply inbox filter if active
-    if (this.currentFilters.inbox) {
-      searchOptions.toProcess = true
-    }
-
-    // Apply tag filter if active
-    if (
-      this.currentFilters.tags &&
-      this.currentFilters.selectedTags.length > 0
-    ) {
-      // Remove # prefix from tags before searching
-      searchOptions.tags = this.currentFilters.selectedTags.map(tag =>
-        tag.startsWith("#") ? tag.slice(1) : tag
-      )
-    }
-
-    // Apply date filter if active
-    if (this.currentFilters.dateFilter) {
-      if (this.currentFilters.dateFrom) {
-        searchOptions.dateFrom = this.currentFilters.dateFrom
-      }
-      if (this.currentFilters.dateTo) {
-        searchOptions.dateTo = this.currentFilters.dateTo
-      }
-    }
-
-    // Get new filtered results from store
-    const searchResult = this.occurrenceStore.search(searchOptions)
+    // Execute search
+    const searchResult = this.searchService.search(searchOptions)
 
     // Update summary in header
     this.header.updateSummary(
@@ -274,52 +181,24 @@ export class OccurrencesView extends ItemView {
 
     // Diff against current state
     const currentPaths = new Set(this.occurrenceListItems.keys())
-    const newPaths = new Set(searchResult.items.map(item => item.file.path))
-
-    // Items to remove (were visible, now not)
-    const toRemove = [...currentPaths].filter(path => !newPaths.has(path))
-
-    // Items to add (weren't visible, now are)
-    const toAdd = searchResult.items.filter(
-      item => !currentPaths.has(item.file.path)
-    )
-
-    // Items to update (were visible, still are, but data changed)
-    const toUpdate = searchResult.items.filter(
-      item => currentPaths.has(item.file.path) && this.hasItemChanged(item)
+    const diff = this.searchService.diffResults(
+      currentPaths,
+      searchResult.items
     )
 
     // Apply changes incrementally
-    toRemove.forEach(path => this.removeItemFromList(path))
-    toAdd.forEach(occurrence => this.addItemToList(occurrence))
-    toUpdate.forEach(occurrence => this.updateItemInList(occurrence))
+    diff.toRemove.forEach(path => this.removeItemFromList(path))
+    diff.toAdd.forEach(occurrence => this.addItemToList(occurrence))
+    diff.toUpdate.forEach(occurrence => this.updateItemInList(occurrence))
 
     // Update empty state
-    this.updateEmptyState(searchResult.items.length === 0)
+    this.emptyState.updateEmptyState(
+      searchResult.items.length === 0,
+      this.filterService.getFilters()
+    )
 
     // Update active states for all items
     this.updateAllActiveStates()
-  }
-
-  /**
-   * Check if an item has changed by comparing with the current list item
-   */
-  private hasItemChanged(occurrence: OccurrenceObject): boolean {
-    const currentItem = this.occurrenceListItems.get(occurrence.file.path)
-    if (!currentItem) return false
-
-    const currentOccurrence = currentItem.getOccurrence()
-
-    // Compare key properties that might affect display
-    return (
-      currentOccurrence.title !== occurrence.title ||
-      currentOccurrence.properties.occurredAt.getTime() !==
-        occurrence.properties.occurredAt.getTime() ||
-      currentOccurrence.properties.toProcess !==
-        occurrence.properties.toProcess ||
-      JSON.stringify(currentOccurrence.properties.tags) !==
-        JSON.stringify(occurrence.properties.tags)
-    )
   }
 
   /**
@@ -353,66 +232,23 @@ export class OccurrencesView extends ItemView {
     this.updateActiveFileHighlight(occurrence.file.path)
   }
 
-  private matchesCurrentFilters(occurrence: OccurrenceObject): boolean {
-    // Apply file filter if active (either current file mode or manual file selection)
-    if (this.currentFilters.currentFile || this.currentFilters.selectedFile) {
-      const searchResult = this.occurrenceStore.search({
-        linksTo: this.currentFilters.selectedFile || undefined,
-      })
-      if (
-        !searchResult.items.some(
-          item => item.file.path === occurrence.file.path
-        )
-      ) {
-        return false
-      }
-    }
-
-    // Apply inbox filter if active
-    if (this.currentFilters.inbox) {
-      if (!occurrence.properties.toProcess) {
-        return false
-      }
-    }
-
-    // Apply tag filter if active
-    if (
-      this.currentFilters.tags &&
-      this.currentFilters.selectedTags.length > 0
-    ) {
-      const occurrenceTags = occurrence.properties.tags || []
-      // Remove # prefix from selected tags for comparison
-      const normalizedSelectedTags = this.currentFilters.selectedTags.map(tag =>
-        tag.startsWith("#") ? tag.slice(1) : tag
-      )
-      const hasMatchingTag = normalizedSelectedTags.some(selectedTag =>
-        occurrenceTags.includes(selectedTag)
-      )
-      if (!hasMatchingTag) {
-        return false
-      }
-    }
-
-    return true
-  }
-
   /**
    * Handle active file changes
    */
-  private onActiveFileChange(): void {
-    const newActiveFile = this.plugin.app.workspace.getActiveFile()
-
+  private onActiveFileChange(newActiveFile: TFile | null): void {
     // For now, update if there's actually a change
     if (newActiveFile !== this.currentActiveFile) {
       this.currentActiveFile = newActiveFile
 
+      const filters = this.filterService.getFilters()
+
       // Update the file selector's active file only if it's in current file mode
-      if (this.currentFilters.currentFile) {
+      if (filters.currentFile) {
         this.header.updateActiveFile()
       }
 
       // Reload if current file mode is active (watching for active file changes)
-      if (this.currentFilters.currentFile) {
+      if (filters.currentFile) {
         this.loadAndRenderOccurrences()
       } else {
         // Just update highlights if not in current file mode
@@ -443,79 +279,6 @@ export class OccurrencesView extends ItemView {
       const isActive = this.currentActiveFile?.path === filePath
       listItem.setActive(isActive)
     })
-  }
-
-  /**
-   * Update the empty state UI based on whether results were found
-   */
-  private updateEmptyState(isEmpty: boolean): void {
-    if (isEmpty) {
-      this.emptyStateEl.show()
-      this.emptyStateEl.empty()
-
-      // Create empty state content
-      const emptyTitle = this.emptyStateEl.createEl("h3", {
-        cls: "empty-state-title",
-        text: "No occurrences found",
-      })
-
-      const emptyMessage = this.emptyStateEl.createEl("p", {
-        cls: "empty-state-message",
-      })
-
-      // Build description based on active filters
-      const filterDescriptions: string[] = []
-
-      if (this.currentFilters.currentFile || this.currentFilters.selectedFile) {
-        const fileName =
-          this.currentFilters.selectedFile?.split("/").pop() ||
-          this.currentFilters.selectedFile
-        filterDescriptions.push(`linking to "${fileName}"`)
-      }
-      if (this.currentFilters.searchQuery) {
-        filterDescriptions.push(`matching "${this.currentFilters.searchQuery}"`)
-      }
-      if (this.currentFilters.inbox) {
-        filterDescriptions.push("in inbox")
-      }
-      if (
-        this.currentFilters.tags &&
-        this.currentFilters.selectedTags.length > 0
-      ) {
-        const tagList = this.currentFilters.selectedTags.join(", ")
-        filterDescriptions.push(`with tags "${tagList}"`)
-      }
-      if (
-        this.currentFilters.dateFilter &&
-        (this.currentFilters.dateFrom || this.currentFilters.dateTo)
-      ) {
-        if (this.currentFilters.dateFrom && this.currentFilters.dateTo) {
-          const fromStr = this.currentFilters.dateFrom.toLocaleDateString()
-          const toStr = this.currentFilters.dateTo.toLocaleDateString()
-          filterDescriptions.push(`between ${fromStr} and ${toStr}`)
-        } else if (this.currentFilters.dateFrom) {
-          const dateStr = this.currentFilters.dateFrom.toLocaleDateString()
-          filterDescriptions.push(`on ${dateStr}`)
-        } else if (this.currentFilters.dateTo) {
-          const dateStr = this.currentFilters.dateTo.toLocaleDateString()
-          filterDescriptions.push(`up to ${dateStr}`)
-        }
-      }
-
-      let message = "Your current search did not return any results."
-      if (filterDescriptions.length > 0) {
-        message = `Occurrences ${filterDescriptions.join(" and ")} not found.`
-      }
-
-      emptyMessage.setText(message)
-
-      const emptySuggestion = this.emptyStateEl.createEl("p", {
-        cls: "empty-state-suggestion",
-        text: "Try adjusting your filter settings above.",
-      })
-    } else {
-      this.emptyStateEl.hide()
-    }
   }
 
   async onClose(): Promise<void> {
