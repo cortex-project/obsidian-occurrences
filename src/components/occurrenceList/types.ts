@@ -1,1 +1,1 @@
-export type GroupByOption = "none" | "day" | "month" | "year"
+export type GroupByOption = "day" | "month" | "year"
