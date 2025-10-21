@@ -1,4 +1,6 @@
 import {
+  GroupByOption,
+  GroupSelector,
   ListGroup,
   OccurrenceListItem,
   OccurrenceListItemOptions,
@@ -18,6 +20,8 @@ export class OccurrenceList extends Component {
   private occurrenceListItems: Map<string, OccurrenceListItem> = new Map()
   private options: OccurrenceListOptions
   private groups: Map<string, ListGroup> = new Map()
+  private groupSelector: GroupSelector
+  private listContainerEl: HTMLElement
 
   constructor(
     plugin: OccurrencesPlugin,
@@ -27,8 +31,45 @@ export class OccurrenceList extends Component {
     super()
     this.plugin = plugin
     this.containerEl = containerEl
-    this.options = { groupBy: "none", ...options }
+    this.options = { groupBy: "day", ...options }
     this.containerEl.addClass("cortex-occurrence-list")
+
+    // Create and add the group selector at the top
+    this.groupSelector = new GroupSelector(this.containerEl, {
+      initialValue:
+        this.options.groupBy === "none" ? "day" : this.options.groupBy,
+      onChange: (value: GroupByOption) => {
+        this.onGroupByChange(value)
+      },
+    })
+    this.addChild(this.groupSelector)
+
+    // Create the list container element (will hold the actual list items)
+    // This needs to be created AFTER the group selector so it appears below it
+    this.listContainerEl = this.containerEl.createEl("div", {
+      cls: "cortex-occurrence-list-items",
+    })
+  }
+
+  /**
+   * Handle changes to the groupBy option
+   */
+  private onGroupByChange(value: GroupByOption): void {
+    // Store current items
+    const currentOccurrences = Array.from(
+      this.occurrenceListItems.entries()
+    ).map(([, item]) => item.getOccurrence())
+
+    // Clear everything
+    this.empty()
+
+    // Update the groupBy option
+    this.options.groupBy = value
+
+    // Re-add all items with new grouping
+    for (const occurrence of currentOccurrences) {
+      this.addItem(occurrence)
+    }
   }
 
   /**
@@ -38,7 +79,7 @@ export class OccurrenceList extends Component {
   public addItem(occurrence: OccurrenceObject): OccurrenceListItem {
     const listItem = new OccurrenceListItem(
       occurrence,
-      this.containerEl,
+      this.listContainerEl,
       this.plugin,
       this.options.listItemOptions
     )
@@ -88,7 +129,7 @@ export class OccurrenceList extends Component {
 
     // Clear groups
     this.groups.clear()
-    this.containerEl.empty()
+    this.listContainerEl.empty()
   }
 
   /**
@@ -110,7 +151,7 @@ export class OccurrenceList extends Component {
 
       if (occurredAt > existingOccurredAt) {
         // Insert before this item
-        this.containerEl.insertBefore(
+        this.listContainerEl.insertBefore(
           listItem.getContainerEl(),
           existingItem.getContainerEl()
         )
@@ -121,7 +162,7 @@ export class OccurrenceList extends Component {
 
     // If not inserted before any existing item, append to end
     if (!inserted) {
-      this.containerEl.appendChild(listItem.getContainerEl())
+      this.listContainerEl.appendChild(listItem.getContainerEl())
     }
   }
 
@@ -137,7 +178,7 @@ export class OccurrenceList extends Component {
     if (!group) {
       // Create new group
       const groupTitle = this.getGroupTitle(occurrence.properties.occurredAt)
-      group = new ListGroup(this.containerEl, groupTitle, this.plugin.app, {
+      group = new ListGroup(this.listContainerEl, groupTitle, this.plugin.app, {
         initialCollapsed: false,
         collapsible: true,
         showCount: true,
@@ -190,19 +231,22 @@ export class OccurrenceList extends Component {
     const insertIndex = groupKeys.indexOf(groupKey)
     if (insertIndex === 0) {
       // Insert at the beginning
-      this.containerEl.insertBefore(
+      this.listContainerEl.insertBefore(
         group.getRootEl(),
-        this.containerEl.firstChild
+        this.listContainerEl.firstChild
       )
     } else if (insertIndex === groupKeys.length - 1) {
       // Insert at the end
-      this.containerEl.appendChild(group.getRootEl())
+      this.listContainerEl.appendChild(group.getRootEl())
     } else {
       // Insert in the middle
       const nextGroupKey = groupKeys[insertIndex + 1]
       const nextGroup = this.groups.get(nextGroupKey)
       if (nextGroup) {
-        this.containerEl.insertBefore(group.getRootEl(), nextGroup.getRootEl())
+        this.listContainerEl.insertBefore(
+          group.getRootEl(),
+          nextGroup.getRootEl()
+        )
       }
     }
   }
