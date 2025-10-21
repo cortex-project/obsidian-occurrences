@@ -3,11 +3,7 @@ import CoretexPlugin from "@/main"
 import { OccurrenceStore } from "@/occurrenceStore"
 import { OccurrenceObject } from "@/types"
 import { App, Menu, TFile, setTooltip } from "obsidian"
-
-export interface OccurrenceListItemOptions {
-  showDate?: boolean
-  showTime?: boolean
-}
+import { OccurrenceListItemOptions } from "./types"
 
 export class OccurrenceListItem extends ListItem<OccurrenceObject> {
   private plugin: CoretexPlugin

@@ -422,65 +422,6 @@
 }
 
 /* ========================================
-   GROUP SELECTOR COMPONENTS
-======================================== */
-
-.group-selector-container {
-  display: flex;
-  border: var(--input-border-width) solid var(--background-modifier-border);
-  border-radius: var(--radius-s);
-  overflow: hidden;
-  background: var(--background-modifier-form-field);
-  margin: var(--size-2-2) 0 var(--size-2-2) auto;
-  width: fit-content;
-}
-
-.group-selector-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--size-2-1);
-  background: transparent;
-  border-right: var(--input-border-width) solid
-    var(--background-modifier-border);
-  border-radius: 0;
-  color: var(--text-muted);
-  cursor: var(--cursor);
-  transition: all var(--anim-duration-fast) ease;
-  min-width: var(--input-height);
-}
-
-.group-selector-button:last-child {
-  border-right: none;
-}
-
-.group-selector-button:hover {
-  background: var(--background-modifier-hover);
-  color: var(--text-normal);
-}
-
-.group-selector-button:focus-visible {
-  outline: var(--input-border-width) solid
-    var(--background-modifier-border-focus);
-  outline-offset: calc(var(--input-border-width) * -1);
-  z-index: var(--layer-popover);
-}
-
-.group-selector-button.is-active {
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
-}
-
-.group-selector-button.is-active:hover {
-  background: var(--interactive-accent-hover);
-}
-
-.group-selector-button svg {
-  width: var(--icon-s);
-  height: var(--icon-s);
-}
-
-/* ========================================
    DATE FILTER COMPONENTS
 ======================================== */
 

@@ -1,18 +1,10 @@
-import {
-  GroupByOption,
-  GroupSelector,
-  ListGroup,
-  OccurrenceListItem,
-  OccurrenceListItemOptions,
-} from "@/components"
+import { ListGroup } from "@/components"
 import OccurrencesPlugin from "@/main"
 import { OccurrenceObject } from "@/types"
 import { Component } from "obsidian"
-
-export interface OccurrenceListOptions {
-  listItemOptions?: OccurrenceListItemOptions
-  groupBy?: "none" | "day" | "month" | "year"
-}
+import { GroupSelector } from "./GroupSelector"
+import { OccurrenceListItem } from "./OccurrenceListItem"
+import { GroupByOption, OccurrenceListOptions } from "./types"
 
 export class OccurrenceList extends Component {
   private plugin: OccurrencesPlugin

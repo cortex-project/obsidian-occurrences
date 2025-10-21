@@ -1,11 +1,5 @@
 import { Component, setIcon, setTooltip } from "obsidian"
-
-export type GroupByOption = "none" | "day" | "month" | "year"
-
-export interface GroupSelectorOptions {
-  initialValue?: GroupByOption
-  onChange?: (value: GroupByOption) => void
-}
+import { GroupByOption, GroupSelectorOptions } from "./types"
 
 /**
  * A segmented control component for selecting grouping options
