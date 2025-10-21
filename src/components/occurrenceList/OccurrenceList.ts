@@ -4,17 +4,13 @@ import { OccurrenceObject } from "@/types"
 import { Component } from "obsidian"
 import { GroupSelector } from "./GroupSelector"
 import { OccurrenceListItem } from "./OccurrenceListItem"
-import {
-  GroupByOption,
-  OccurrenceListItemOptions,
-  OccurrenceListOptions,
-} from "./types"
+import { GroupByOption } from "./types"
 
 export class OccurrenceList extends Component {
   private plugin: OccurrencesPlugin
   private containerEl: HTMLElement
   private occurrenceListItems: Map<string, OccurrenceListItem> = new Map()
-  private options: OccurrenceListOptions
+  private groupBy: GroupByOption
   private groups: Map<string, ListGroup> = new Map()
   private groupSelector: GroupSelector
   private listContainerEl: HTMLElement
@@ -22,22 +18,22 @@ export class OccurrenceList extends Component {
   constructor(
     plugin: OccurrencesPlugin,
     containerEl: HTMLElement,
-    options?: OccurrenceListOptions
+    initialGroupBy: GroupByOption = "day"
   ) {
     super()
     this.plugin = plugin
     this.containerEl = containerEl
-    this.options = { groupBy: "day", ...options }
+    this.groupBy = initialGroupBy
     this.containerEl.addClass("cortex-occurrence-list")
 
     // Create and add the group selector at the top
-    this.groupSelector = new GroupSelector(this.containerEl, {
-      initialValue:
-        this.options.groupBy === "none" ? "day" : this.options.groupBy,
-      onChange: (value: GroupByOption) => {
+    this.groupSelector = new GroupSelector(
+      this.containerEl,
+      this.groupBy,
+      (value: GroupByOption) => {
         this.onGroupByChange(value)
-      },
-    })
+      }
+    )
     this.addChild(this.groupSelector)
 
     // Create the list container element (will hold the actual list items)
@@ -60,7 +56,7 @@ export class OccurrenceList extends Component {
     this.empty()
 
     // Update the groupBy option
-    this.options.groupBy = value
+    this.groupBy = value
 
     // Re-add all items with new grouping
     for (const occurrence of currentOccurrences) {
@@ -69,23 +65,14 @@ export class OccurrenceList extends Component {
   }
 
   /**
-   * Get the list item options based on the current groupBy setting
-   * @returns The list item options
+   * Determine showDate and showTime based on the current groupBy setting
    */
-  private getListItemOptions(): OccurrenceListItemOptions {
-    const baseOptions = this.options.listItemOptions || {}
+  private getShowDate(): boolean {
+    return this.groupBy === "month" || this.groupBy === "year"
+  }
 
-    // Override based on groupBy setting
-    switch (this.options.groupBy) {
-      case "day":
-        return { ...baseOptions, showDate: false, showTime: true }
-      case "month":
-        return { ...baseOptions, showDate: true, showTime: false }
-      case "year":
-        return { ...baseOptions, showDate: true, showTime: false }
-      default:
-        return baseOptions
-    }
+  private getShowTime(): boolean {
+    return this.groupBy === "day"
   }
 
   /**
@@ -97,7 +84,8 @@ export class OccurrenceList extends Component {
       occurrence,
       this.listContainerEl,
       this.plugin,
-      this.getListItemOptions()
+      this.getShowDate(),
+      this.getShowTime()
     )
 
     // Add to our tracking map
@@ -106,7 +94,7 @@ export class OccurrenceList extends Component {
     // Bind for cleanup purposes
     this.addChild(listItem)
 
-    if (this.options.groupBy === "none") {
+    if (this.groupBy === "none") {
       // Insert in chronological order (most recent first)
       this.insertInOrder(listItem)
     } else {
@@ -124,7 +112,7 @@ export class OccurrenceList extends Component {
   public removeItem(path: string): void {
     const listItem = this.occurrenceListItems.get(path)
     if (listItem) {
-      if (this.options.groupBy === "none") {
+      if (this.groupBy === "none") {
         listItem.unload()
       } else {
         // Remove from group
@@ -311,7 +299,7 @@ export class OccurrenceList extends Component {
    * @returns The group key string
    */
   private getGroupKey(date: Date): string {
-    switch (this.options.groupBy) {
+    switch (this.groupBy) {
       case "day":
         // Use local date methods instead of toISOString() to respect user's timezone
         const year = date.getFullYear()
@@ -336,7 +324,7 @@ export class OccurrenceList extends Component {
    * @returns The group title string
    */
   private getGroupTitle(date: Date): string {
-    switch (this.options.groupBy) {
+    switch (this.groupBy) {
       case "day":
         const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
         const monthNames = [

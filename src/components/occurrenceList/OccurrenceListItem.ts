@@ -3,21 +3,22 @@ import CoretexPlugin from "@/main"
 import { OccurrenceStore } from "@/occurrenceStore"
 import { OccurrenceObject } from "@/types"
 import { App, Menu, TFile, setTooltip } from "obsidian"
-import { OccurrenceListItemOptions } from "./types"
 
 export class OccurrenceListItem extends ListItem<OccurrenceObject> {
   private plugin: CoretexPlugin
   private occurrenceStore: OccurrenceStore
   private occurrence: OccurrenceObject
   private menu: Menu
-  private options: OccurrenceListItemOptions
+  private showDate: boolean
+  private showTime: boolean
   private app: App
 
   constructor(
     occurrence: OccurrenceObject,
     containerEl: HTMLElement,
     plugin: CoretexPlugin,
-    options?: OccurrenceListItemOptions
+    showDate: boolean = false,
+    showTime: boolean = false
   ) {
     // Call parent constructor with the occurrence and display text
     super(containerEl, occurrence, occurrence.title, file =>
@@ -28,13 +29,8 @@ export class OccurrenceListItem extends ListItem<OccurrenceObject> {
     this.plugin = plugin
     this.occurrenceStore = plugin.occurrenceStore
     this.occurrence = occurrence
-
-    // Set default options
-    this.options = {
-      showDate: false,
-      showTime: false,
-      ...options,
-    }
+    this.showDate = showDate
+    this.showTime = showTime
 
     // Add tooltip using Obsidian's native approach
     setTooltip(this.getContainerEl(), occurrence.title)
@@ -166,7 +162,7 @@ export class OccurrenceListItem extends ListItem<OccurrenceObject> {
     }
 
     // Add date and time if enabled
-    if (this.options.showDate) {
+    if (this.showDate) {
       const dateStr = this.occurrence.properties.occurredAt.toLocaleDateString(
         "en-US",
         {
@@ -179,7 +175,7 @@ export class OccurrenceListItem extends ListItem<OccurrenceObject> {
       this.addTextRight(paddedDate)
     }
 
-    if (this.options.showTime) {
+    if (this.showTime) {
       this.addTextRight(
         this.occurrence.properties.occurredAt.toLocaleTimeString("en-US", {
           hour: "numeric",

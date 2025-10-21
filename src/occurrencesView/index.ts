@@ -100,12 +100,7 @@ export class OccurrencesView extends ItemView {
     this.occurrenceList = new OccurrenceList(
       this.plugin,
       occurrencesContainer,
-      {
-        groupBy: "day",
-        listItemOptions: {
-          showTime: true,
-        },
-      }
+      "day"
     )
     this.addChild(this.occurrenceList)
 
