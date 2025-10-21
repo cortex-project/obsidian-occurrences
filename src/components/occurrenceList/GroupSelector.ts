@@ -1,21 +1,25 @@
 import { Component, setIcon, setTooltip } from "obsidian"
-import { GroupByOption, GroupSelectorOptions } from "./types"
+import { GroupByOption } from "./types"
 
 /**
  * A segmented control component for selecting grouping options
  */
 export class GroupSelector extends Component {
   private containerEl: HTMLElement
-  private options: GroupSelectorOptions
+  private onChange?: (value: GroupByOption) => void
   private currentValue: GroupByOption
   private buttons: Map<GroupByOption, HTMLElement> = new Map()
   private buttonGroupEl: HTMLElement
 
-  constructor(containerEl: HTMLElement, options?: GroupSelectorOptions) {
+  constructor(
+    containerEl: HTMLElement,
+    initialValue: GroupByOption = "day",
+    onChange?: (value: GroupByOption) => void
+  ) {
     super()
     this.containerEl = containerEl
-    this.options = options ?? {}
-    this.currentValue = this.options.initialValue ?? "day"
+    this.onChange = onChange
+    this.currentValue = initialValue
 
     // Create the button group container
     this.buttonGroupEl = this.containerEl.createEl("div", {
@@ -77,7 +81,7 @@ export class GroupSelector extends Component {
     this.currentValue = value
     this.updateActiveButton()
 
-    this.options.onChange?.(value)
+    this.onChange?.(value)
   }
 
   /**
