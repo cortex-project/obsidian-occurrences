@@ -4,7 +4,11 @@ import { OccurrenceObject } from "@/types"
 import { Component } from "obsidian"
 import { GroupSelector } from "./GroupSelector"
 import { OccurrenceListItem } from "./OccurrenceListItem"
-import { GroupByOption, OccurrenceListOptions } from "./types"
+import {
+  GroupByOption,
+  OccurrenceListItemOptions,
+  OccurrenceListOptions,
+} from "./types"
 
 export class OccurrenceList extends Component {
   private plugin: OccurrencesPlugin
@@ -65,6 +69,26 @@ export class OccurrenceList extends Component {
   }
 
   /**
+   * Get the list item options based on the current groupBy setting
+   * @returns The list item options
+   */
+  private getListItemOptions(): OccurrenceListItemOptions {
+    const baseOptions = this.options.listItemOptions || {}
+
+    // Override based on groupBy setting
+    switch (this.options.groupBy) {
+      case "day":
+        return { ...baseOptions, showDate: false, showTime: true }
+      case "month":
+        return { ...baseOptions, showDate: true, showTime: false }
+      case "year":
+        return { ...baseOptions, showDate: true, showTime: false }
+      default:
+        return baseOptions
+    }
+  }
+
+  /**
    * Add an occurrence item to the list, maintaining chronological order
    * @param occurrence - The occurrence object to add
    */
@@ -73,7 +97,7 @@ export class OccurrenceList extends Component {
       occurrence,
       this.listContainerEl,
       this.plugin,
-      this.options.listItemOptions
+      this.getListItemOptions()
     )
 
     // Add to our tracking map
@@ -331,7 +355,7 @@ export class OccurrenceList extends Component {
         ]
         return `${dayNames[date.getDay()]}, ${
           monthNames[date.getMonth()]
-        } ${date.getDate()}`
+        } ${date.getDate()} ${date.getFullYear()}`
       case "month":
         const fullMonthNames = [
           "January",
