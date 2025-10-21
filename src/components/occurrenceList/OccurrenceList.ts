@@ -24,7 +24,7 @@ export class OccurrenceList extends Component {
     this.plugin = plugin
     this.containerEl = containerEl
     this.groupBy = initialGroupBy
-    this.containerEl.addClass("cortex-occurrence-list")
+    this.containerEl.addClass("occurrence-list")
 
     // Create and add the group selector at the top
     this.groupSelector = new GroupSelector(
@@ -39,7 +39,7 @@ export class OccurrenceList extends Component {
     // Create the list container element (will hold the actual list items)
     // This needs to be created AFTER the group selector so it appears below it
     this.listContainerEl = this.containerEl.createEl("div", {
-      cls: "cortex-occurrence-list-items",
+      cls: "occurrence-list-items",
     })
   }
 
@@ -94,13 +94,8 @@ export class OccurrenceList extends Component {
     // Bind for cleanup purposes
     this.addChild(listItem)
 
-    if (this.groupBy === "none") {
-      // Insert in chronological order (most recent first)
-      this.insertInOrder(listItem)
-    } else {
-      // Insert into appropriate group
-      this.insertIntoGroup(listItem)
-    }
+    // Insert into appropriate group
+    this.insertIntoGroup(listItem)
 
     return listItem
   }
@@ -112,12 +107,8 @@ export class OccurrenceList extends Component {
   public removeItem(path: string): void {
     const listItem = this.occurrenceListItems.get(path)
     if (listItem) {
-      if (this.groupBy === "none") {
-        listItem.unload()
-      } else {
-        // Remove from group
-        this.removeFromGroup(listItem)
-      }
+      // Remove from group
+      this.removeFromGroup(listItem)
       this.occurrenceListItems.delete(path)
       this.removeChild(listItem)
     }
@@ -134,40 +125,6 @@ export class OccurrenceList extends Component {
     // Clear groups
     this.groups.clear()
     this.listContainerEl.empty()
-  }
-
-  /**
-   * Insert a list item in chronological order (most recent first)
-   * @param listItem - The list item to insert
-   */
-  private insertInOrder(listItem: OccurrenceListItem): void {
-    const occurrence = listItem.getOccurrence()
-    const occurredAt = occurrence.properties.occurredAt.getTime()
-
-    // Find the correct position to insert
-    let inserted = false
-    const existingItems = Array.from(this.occurrenceListItems.values())
-
-    for (const existingItem of existingItems) {
-      const existingOccurredAt = existingItem
-        .getOccurrence()
-        .properties.occurredAt.getTime()
-
-      if (occurredAt > existingOccurredAt) {
-        // Insert before this item
-        this.listContainerEl.insertBefore(
-          listItem.getContainerEl(),
-          existingItem.getContainerEl()
-        )
-        inserted = true
-        break
-      }
-    }
-
-    // If not inserted before any existing item, append to end
-    if (!inserted) {
-      this.listContainerEl.appendChild(listItem.getContainerEl())
-    }
   }
 
   /**

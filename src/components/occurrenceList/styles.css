@@ -1,7 +1,17 @@
 /* ========================================
-   GROUP SELECTOR COMPONENTS
+   OCCURRENCE LIST COMPONENTS
 ======================================== */
 
+/* Occurrence List Container */
+.occurrence-list {
+  /* Add any list container styles here if needed */
+}
+
+.occurrence-list-items {
+  /* Add any list items container styles here if needed */
+}
+
+/* Group Selector */
 .group-selector-container {
   display: flex;
   border: var(--input-border-width) solid var(--background-modifier-border);

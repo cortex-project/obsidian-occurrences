@@ -1,11 +1,11 @@
 import { ListItem } from "@/components"
-import CoretexPlugin from "@/main"
+import OccurrencesPlugin from "@/main"
 import { OccurrenceStore } from "@/occurrenceStore"
 import { OccurrenceObject } from "@/types"
 import { App, Menu, TFile, setTooltip } from "obsidian"
 
 export class OccurrenceListItem extends ListItem<OccurrenceObject> {
-  private plugin: CoretexPlugin
+  private plugin: OccurrencesPlugin
   private occurrenceStore: OccurrenceStore
   private occurrence: OccurrenceObject
   private menu: Menu
@@ -16,7 +16,7 @@ export class OccurrenceListItem extends ListItem<OccurrenceObject> {
   constructor(
     occurrence: OccurrenceObject,
     containerEl: HTMLElement,
-    plugin: CoretexPlugin,
+    plugin: OccurrencesPlugin,
     showDate: boolean = false,
     showTime: boolean = false
   ) {
@@ -48,9 +48,6 @@ export class OccurrenceListItem extends ListItem<OccurrenceObject> {
   private setupFileHandlers(): void {
     const containerEl = this.getContainerEl()
 
-    // Remove the default click handler and add our own
-    containerEl.removeEventListener("click", this.handleClick)
-
     // Open file on click using Obsidian's native link handling
     this.registerDomEvent(containerEl, "click", (event: MouseEvent) => {
       // Prevent default to avoid any unwanted behavior
@@ -72,11 +69,6 @@ export class OccurrenceListItem extends ListItem<OccurrenceObject> {
     })
   }
 
-  /**
-   * Dummy click handler for removal
-   */
-  private handleClick = () => {}
-
   private configureMenu() {
     // Open file option
     this.menu.addItem(item => {
@@ -90,15 +82,6 @@ export class OccurrenceListItem extends ListItem<OccurrenceObject> {
             false
           )
         )
-    })
-    // Open modal option
-    this.menu.addItem(item => {
-      item
-        .setTitle("Open Modal")
-        .setIcon("square-arrow-up-left")
-        .onClick(() => {
-          // new OccurrenceModal(this.plugin, this.occurrence).open()
-        })
     })
     // Delete occurrence option
     this.menu.addSeparator()
