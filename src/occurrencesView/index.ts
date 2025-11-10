@@ -86,7 +86,11 @@ export class OccurrencesView extends ItemView {
     })
 
     // Create empty state component
-    this.emptyState = new EmptyState(this.contentEl)
+    this.emptyState = new EmptyState(
+      this.contentEl,
+      this.filterService,
+      () => this.header.syncFilterControls()
+    )
     this.addChild(this.emptyState)
 
     // Create unified occurrence list
@@ -139,16 +143,31 @@ export class OccurrencesView extends ItemView {
       searchResult.pagination
     )
 
-    // Update empty state
-    this.emptyState.updateEmptyState(
-      searchResult.items.length === 0,
-      this.filterService.getFilters()
-    )
-
-    // Add occurrences to the list
-    for (const occurrence of searchResult.items) {
-      const listItem = this.occurrenceList.addItem(occurrence)
-      this.occurrenceListItems.set(occurrence.file.path, listItem)
+    // Update empty state and show/hide list accordingly
+    const isEmpty = searchResult.items.length === 0
+    this.emptyState.updateEmptyState(isEmpty, this.filterService.getFilters())
+    
+    // Get the occurrences container to show/hide it
+    const occurrencesContainer = this.contentEl.querySelector(
+      ".occurrences-view-content-container"
+    ) as HTMLElement
+    
+    if (isEmpty) {
+      // Hide the occurrence list when empty
+      if (occurrencesContainer) {
+        occurrencesContainer.hide()
+      }
+    } else {
+      // Show the occurrence list when there are results
+      if (occurrencesContainer) {
+        occurrencesContainer.show()
+      }
+      
+      // Add occurrences to the list
+      for (const occurrence of searchResult.items) {
+        const listItem = this.occurrenceList.addItem(occurrence)
+        this.occurrenceListItems.set(occurrence.file.path, listItem)
+      }
     }
 
     // Initialize active state after loading
@@ -191,11 +210,26 @@ export class OccurrencesView extends ItemView {
     diff.toAdd.forEach(occurrence => this.addItemToList(occurrence))
     diff.toUpdate.forEach(occurrence => this.updateItemInList(occurrence))
 
-    // Update empty state
-    this.emptyState.updateEmptyState(
-      searchResult.items.length === 0,
-      this.filterService.getFilters()
-    )
+    // Update empty state and show/hide list accordingly
+    const isEmpty = searchResult.items.length === 0
+    this.emptyState.updateEmptyState(isEmpty, this.filterService.getFilters())
+    
+    // Get the occurrences container to show/hide it
+    const occurrencesContainer = this.contentEl.querySelector(
+      ".occurrences-view-content-container"
+    ) as HTMLElement
+    
+    if (isEmpty) {
+      // Hide the occurrence list when empty
+      if (occurrencesContainer) {
+        occurrencesContainer.hide()
+      }
+    } else {
+      // Show the occurrence list when there are results
+      if (occurrencesContainer) {
+        occurrencesContainer.show()
+      }
+    }
 
     // Update active states for all items
     this.updateAllActiveStates()

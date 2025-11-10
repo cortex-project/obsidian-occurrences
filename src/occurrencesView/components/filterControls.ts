@@ -313,6 +313,45 @@ export class FilterControls extends Component {
   }
 
   /**
+   * Sync UI state with current filter state
+   * This should be called when filters are reset externally
+   */
+  public syncWithFilterState(): void {
+    const filters = this.filterService.getFilters()
+
+    // Update component visibility
+    if (filters.search) {
+      this.searchBar.show()
+    } else {
+      this.searchBar.hide()
+    }
+
+    if (filters.currentFile) {
+      this.fileSelector.show()
+    } else {
+      this.fileSelector.hide()
+      this.fileSelector.clearInput()
+    }
+
+    if (filters.tags) {
+      this.tagSelector.show()
+    } else {
+      this.tagSelector.hide()
+      this.tagSelector.clearInput()
+    }
+
+    if (filters.dateFilter) {
+      this.dateFilter.show()
+    } else {
+      this.dateFilter.hide()
+      this.dateFilter.clearInput()
+    }
+
+    // Update button states
+    this.updateButtonStates()
+  }
+
+  /**
    * Get the buttons container element
    */
   public getButtonsContainer(): HTMLElement {

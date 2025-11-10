@@ -69,6 +69,13 @@ export class Header extends Component {
   }
 
   /**
+   * Sync filter controls UI with current filter state
+   */
+  public syncFilterControls(): void {
+    this.filterControls.syncWithFilterState()
+  }
+
+  /**
    * Update the summary display with new data
    */
   public updateSummary(
