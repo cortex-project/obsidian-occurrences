@@ -9,6 +9,7 @@ export interface SearchFilters {
   dateFilter: boolean
   dateFrom: Date | null
   dateTo: Date | null
+  sortOrder: "asc" | "desc"
 }
 
 export interface SearchMetadata {
@@ -23,6 +24,7 @@ export interface SearchOptions {
   tags?: string[]
   dateFrom?: Date
   dateTo?: Date
+  sortOrder?: "asc" | "desc"
 }
 
 export interface SearchResult {

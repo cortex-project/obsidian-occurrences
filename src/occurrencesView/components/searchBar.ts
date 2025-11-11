@@ -131,3 +131,4 @@ export class SearchBar extends Component {
     return this.searchContainer
   }
 }
+

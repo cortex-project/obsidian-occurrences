@@ -12,6 +12,7 @@ export class FilterService {
     dateFilter: false,
     dateFrom: null,
     dateTo: null,
+    sortOrder: "desc",
   }
 
   private onFilterChange?: (filters: SearchFilters) => void
@@ -124,6 +125,9 @@ export class FilterService {
       }
     }
 
+    // Apply sort order
+    searchOptions.sortOrder = this.filters.sortOrder
+
     return searchOptions
   }
 
@@ -171,6 +175,15 @@ export class FilterService {
   }
 
   /**
+   * Toggle sort order between ascending and descending
+   */
+  public toggleSortOrder(): void {
+    const newSortOrder: "asc" | "desc" =
+      this.filters.sortOrder === "asc" ? "desc" : "asc"
+    this.updateFilters({ sortOrder: newSortOrder })
+  }
+
+  /**
    * Reset all filters to default state
    */
   public resetFilters(): void {
@@ -185,6 +198,7 @@ export class FilterService {
       dateFilter: false,
       dateFrom: null,
       dateTo: null,
+      sortOrder: "desc",
     }
     this.onFilterChange?.(this.getFilters())
   }

@@ -1,5 +1,5 @@
-import { OccurrenceList, OccurrenceListItem } from "@/components"
-import CoretexPlugin from "@/main"
+import { OccurrenceList, OccurrenceListItem } from "@/occurrenceList"
+import OccurrencesPlugin from "@/main"
 import { OccurrenceStore } from "@/occurrenceStore"
 import { OccurrenceObject } from "@/types"
 import { ItemView, TFile, WorkspaceLeaf } from "obsidian"
@@ -13,7 +13,7 @@ import { SearchFilters } from "./types"
 export const OCCURRENCES_VIEW = "occurrences-view"
 
 export class OccurrencesView extends ItemView {
-  private plugin: CoretexPlugin
+  private plugin: OccurrencesPlugin
   // UI elements
   public contentEl: HTMLElement
 
@@ -32,7 +32,7 @@ export class OccurrencesView extends ItemView {
   // State
   private currentActiveFile: TFile | null = null
 
-  constructor(leaf: WorkspaceLeaf, plugin: CoretexPlugin) {
+  constructor(leaf: WorkspaceLeaf, plugin: OccurrencesPlugin) {
     super(leaf)
     this.plugin = plugin
     this.app = this.plugin.app
@@ -100,12 +100,7 @@ export class OccurrencesView extends ItemView {
     this.occurrenceList = new OccurrenceList(
       this.plugin,
       occurrencesContainer,
-      {
-        groupBy: "day",
-        listItemOptions: {
-          showTime: true,
-        },
-      }
+      "day"
     )
     this.addChild(this.occurrenceList)
 
@@ -132,6 +127,10 @@ export class OccurrencesView extends ItemView {
 
     // Build search options from current filters
     const searchOptions = this.filterService.buildSearchOptions()
+
+    // Set sort order on occurrence list before adding items
+    const filters = this.filterService.getFilters()
+    this.occurrenceList.setSortOrder(filters.sortOrder)
 
     // Execute search
     const searchResult = this.searchService.search(searchOptions)
@@ -187,6 +186,10 @@ export class OccurrencesView extends ItemView {
 
     // Build search options from current filters
     const searchOptions = this.filterService.buildSearchOptions()
+
+    // Set sort order on occurrence list before adding items
+    const filters = this.filterService.getFilters()
+    this.occurrenceList.setSortOrder(filters.sortOrder)
 
     // Execute search
     const searchResult = this.searchService.search(searchOptions)

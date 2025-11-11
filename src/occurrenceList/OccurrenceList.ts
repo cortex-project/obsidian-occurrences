@@ -1,34 +1,92 @@
-import {
-  ListGroup,
-  OccurrenceListItem,
-  OccurrenceListItemOptions,
-} from "@/components"
+import { ListGroup } from "./listGroup"
 import OccurrencesPlugin from "@/main"
 import { OccurrenceObject } from "@/types"
 import { Component } from "obsidian"
-
-export interface OccurrenceListOptions {
-  listItemOptions?: OccurrenceListItemOptions
-  groupBy?: "none" | "day" | "month" | "year"
-}
+import { GroupSelector } from "./GroupSelector"
+import { OccurrenceListItem } from "./OccurrenceListItem"
+import { GroupByOption } from "./types"
 
 export class OccurrenceList extends Component {
   private plugin: OccurrencesPlugin
   private containerEl: HTMLElement
   private occurrenceListItems: Map<string, OccurrenceListItem> = new Map()
-  private options: OccurrenceListOptions
+  private groupBy: GroupByOption
+  private sortOrder: "asc" | "desc" = "desc"
   private groups: Map<string, ListGroup> = new Map()
+  private groupSelector: GroupSelector
+  private listContainerEl: HTMLElement
 
   constructor(
     plugin: OccurrencesPlugin,
     containerEl: HTMLElement,
-    options?: OccurrenceListOptions
+    initialGroupBy: GroupByOption = "day"
   ) {
     super()
     this.plugin = plugin
     this.containerEl = containerEl
-    this.options = { groupBy: "none", ...options }
-    this.containerEl.addClass("cortex-occurrence-list")
+    this.groupBy = initialGroupBy
+    this.containerEl.addClass("occurrence-list")
+
+    // Create a container for the group selector
+    const selectorsContainer = this.containerEl.createEl("div", {
+      cls: "occurrence-list-selectors",
+    })
+
+    // Create and add the group selector
+    this.groupSelector = new GroupSelector(
+      selectorsContainer,
+      this.groupBy,
+      (value: GroupByOption) => {
+        this.onGroupByChange(value)
+      }
+    )
+    this.addChild(this.groupSelector)
+
+    // Create the list container element (will hold the actual list items)
+    // This needs to be created AFTER the selectors so it appears below them
+    this.listContainerEl = this.containerEl.createEl("div", {
+      cls: "occurrence-list-items",
+    })
+  }
+
+  /**
+   * Handle changes to the groupBy option
+   */
+  private onGroupByChange(value: GroupByOption): void {
+    // Store current items
+    const currentOccurrences = Array.from(
+      this.occurrenceListItems.entries()
+    ).map(([, item]) => item.getOccurrence())
+
+    // Clear everything
+    this.empty()
+
+    // Update the groupBy option
+    this.groupBy = value
+
+    // Re-add all items with new grouping
+    for (const occurrence of currentOccurrences) {
+      this.addItem(occurrence)
+    }
+  }
+
+  /**
+   * Determine showDate and showTime based on the current groupBy setting
+   */
+  private getShowDate(): boolean {
+    return this.groupBy === "month" || this.groupBy === "year"
+  }
+
+  private getShowTime(): boolean {
+    return this.groupBy === "day"
+  }
+
+  /**
+   * Set the sort order for items and groups
+   * @param sortOrder - The sort order ("asc" or "desc")
+   */
+  public setSortOrder(sortOrder: "asc" | "desc"): void {
+    this.sortOrder = sortOrder
   }
 
   /**
@@ -38,9 +96,10 @@ export class OccurrenceList extends Component {
   public addItem(occurrence: OccurrenceObject): OccurrenceListItem {
     const listItem = new OccurrenceListItem(
       occurrence,
-      this.containerEl,
+      this.listContainerEl,
       this.plugin,
-      this.options.listItemOptions
+      this.getShowDate(),
+      this.getShowTime()
     )
 
     // Add to our tracking map
@@ -49,13 +108,8 @@ export class OccurrenceList extends Component {
     // Bind for cleanup purposes
     this.addChild(listItem)
 
-    if (this.options.groupBy === "none") {
-      // Insert in chronological order (most recent first)
-      this.insertInOrder(listItem)
-    } else {
-      // Insert into appropriate group
-      this.insertIntoGroup(listItem)
-    }
+    // Insert into appropriate group
+    this.insertIntoGroup(listItem)
 
     return listItem
   }
@@ -67,12 +121,8 @@ export class OccurrenceList extends Component {
   public removeItem(path: string): void {
     const listItem = this.occurrenceListItems.get(path)
     if (listItem) {
-      if (this.options.groupBy === "none") {
-        listItem.unload()
-      } else {
-        // Remove from group
-        this.removeFromGroup(listItem)
-      }
+      // Remove from group
+      this.removeFromGroup(listItem)
       this.occurrenceListItems.delete(path)
       this.removeChild(listItem)
     }
@@ -88,41 +138,7 @@ export class OccurrenceList extends Component {
 
     // Clear groups
     this.groups.clear()
-    this.containerEl.empty()
-  }
-
-  /**
-   * Insert a list item in chronological order (most recent first)
-   * @param listItem - The list item to insert
-   */
-  private insertInOrder(listItem: OccurrenceListItem): void {
-    const occurrence = listItem.getOccurrence()
-    const occurredAt = occurrence.properties.occurredAt.getTime()
-
-    // Find the correct position to insert
-    let inserted = false
-    const existingItems = Array.from(this.occurrenceListItems.values())
-
-    for (const existingItem of existingItems) {
-      const existingOccurredAt = existingItem
-        .getOccurrence()
-        .properties.occurredAt.getTime()
-
-      if (occurredAt > existingOccurredAt) {
-        // Insert before this item
-        this.containerEl.insertBefore(
-          listItem.getContainerEl(),
-          existingItem.getContainerEl()
-        )
-        inserted = true
-        break
-      }
-    }
-
-    // If not inserted before any existing item, append to end
-    if (!inserted) {
-      this.containerEl.appendChild(listItem.getContainerEl())
-    }
+    this.listContainerEl.empty()
   }
 
   /**
@@ -137,7 +153,7 @@ export class OccurrenceList extends Component {
     if (!group) {
       // Create new group
       const groupTitle = this.getGroupTitle(occurrence.properties.occurredAt)
-      group = new ListGroup(this.containerEl, groupTitle, this.plugin.app, {
+      group = new ListGroup(this.listContainerEl, groupTitle, this.plugin.app, {
         initialCollapsed: false,
         collapsible: true,
         showCount: true,
@@ -177,38 +193,42 @@ export class OccurrenceList extends Component {
   }
 
   /**
-   * Insert a group in chronological order (most recent first)
+   * Insert a group in chronological order based on sortOrder
    * @param group - The group to insert
    * @param groupKey - The key of the group
    */
   private insertGroupInOrder(group: ListGroup, groupKey: string): void {
-    const groupKeys = Array.from(this.groups.keys()).sort((a, b) => {
-      // Sort in reverse chronological order (most recent first)
-      return b.localeCompare(a)
+    // Sort all group keys including the new one based on sortOrder
+    const allGroupKeys = Array.from(this.groups.keys()).sort((a, b) => {
+      return this.sortOrder === "desc" ? b.localeCompare(a) : a.localeCompare(b)
     })
 
-    const insertIndex = groupKeys.indexOf(groupKey)
+    const insertIndex = allGroupKeys.indexOf(groupKey)
     if (insertIndex === 0) {
       // Insert at the beginning
-      this.containerEl.insertBefore(
+      this.listContainerEl.insertBefore(
         group.getRootEl(),
-        this.containerEl.firstChild
+        this.listContainerEl.firstChild
       )
-    } else if (insertIndex === groupKeys.length - 1) {
+    } else if (insertIndex === allGroupKeys.length - 1) {
       // Insert at the end
-      this.containerEl.appendChild(group.getRootEl())
+      this.listContainerEl.appendChild(group.getRootEl())
     } else {
       // Insert in the middle
-      const nextGroupKey = groupKeys[insertIndex + 1]
+      const nextGroupKey = allGroupKeys[insertIndex + 1]
       const nextGroup = this.groups.get(nextGroupKey)
       if (nextGroup) {
-        this.containerEl.insertBefore(group.getRootEl(), nextGroup.getRootEl())
+        this.listContainerEl.insertBefore(
+          group.getRootEl(),
+          nextGroup.getRootEl()
+        )
       }
     }
   }
 
   /**
-   * Insert an item into a group in chronological order (most recent first)
+   * Insert an item into a group maintaining the order from search results
+   * Uses the stored sortOrder to determine insertion position
    * @param listItem - The list item to insert
    * @param group - The group to insert into
    */
@@ -220,6 +240,7 @@ export class OccurrenceList extends Component {
     const occurredAt = occurrence.properties.occurredAt.getTime()
     const existingItems = group.getListItems()
 
+    // Find the correct insertion point to maintain sorted order
     let insertIndex = existingItems.length
 
     for (let i = 0; i < existingItems.length; i++) {
@@ -230,9 +251,21 @@ export class OccurrenceList extends Component {
         .getOccurrence()
         .properties.occurredAt.getTime()
 
-      if (occurredAt > existingOccurredAt) {
-        insertIndex = i
-        break
+      // Insert based on sort direction
+      if (this.sortOrder === "desc") {
+        // Descending: newer items come first
+        // Insert before the first item that is older (has smaller timestamp)
+        if (occurredAt > existingOccurredAt) {
+          insertIndex = i
+          break
+        }
+      } else {
+        // Ascending: older items come first
+        // Insert before the first item that is newer (has larger timestamp)
+        if (occurredAt < existingOccurredAt) {
+          insertIndex = i
+          break
+        }
       }
     }
 
@@ -251,13 +284,14 @@ export class OccurrenceList extends Component {
    * @returns The group key string
    */
   private getGroupKey(date: Date): string {
-    switch (this.options.groupBy) {
-      case "day":
+    switch (this.groupBy) {
+      case "day": {
         // Use local date methods instead of toISOString() to respect user's timezone
         const year = date.getFullYear()
         const month = String(date.getMonth() + 1).padStart(2, "0")
         const day = String(date.getDate()).padStart(2, "0")
         return `${year}-${month}-${day}` // YYYY-MM-DD
+      }
       case "month":
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
           2,
@@ -276,8 +310,8 @@ export class OccurrenceList extends Component {
    * @returns The group title string
    */
   private getGroupTitle(date: Date): string {
-    switch (this.options.groupBy) {
-      case "day":
+    switch (this.groupBy) {
+      case "day": {
         const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
         const monthNames = [
           "Jan",
@@ -295,8 +329,9 @@ export class OccurrenceList extends Component {
         ]
         return `${dayNames[date.getDay()]}, ${
           monthNames[date.getMonth()]
-        } ${date.getDate()}`
-      case "month":
+        } ${date.getDate()} ${date.getFullYear()}`
+      }
+      case "month": {
         const fullMonthNames = [
           "January",
           "February",
@@ -312,6 +347,7 @@ export class OccurrenceList extends Component {
           "December",
         ]
         return `${fullMonthNames[date.getMonth()]} ${date.getFullYear()}`
+      }
       case "year":
         return date.getFullYear().toString()
       default:
@@ -319,3 +355,4 @@ export class OccurrenceList extends Component {
     }
   }
 }
+

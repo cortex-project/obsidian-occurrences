@@ -31,6 +31,7 @@ export class EmptyState extends Component {
       dateFilter: false,
       dateFrom: null,
       dateTo: null,
+      sortOrder: "desc",
     }
   }
 
