@@ -1,0 +1,183 @@
+/* ========================================
+   OCCURRENCE LIST COMPONENTS
+======================================== */
+
+/* Occurrence List Container */
+.occurrence-list {
+  /* Add any list container styles here if needed */
+}
+
+.occurrence-list-items {
+  /* Add any list items container styles here if needed */
+}
+
+/* ========================================
+   LIST GROUP COMPONENTS
+======================================== */
+
+.list-item {
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.list-item:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.list-item a {
+  display: block;
+  text-decoration: none;
+}
+
+/* ========================================
+    LIST ITEM COMPONENTS
+======================================== */
+
+.list-item {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 8px;
+}
+
+.list-item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.list-item-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+.list-item svg {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+.list-item .icon-sm svg {
+  width: 0.9em;
+  height: 0.9em;
+}
+
+.list-item-right-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.list-item-text-right {
+  font-size: 0.85em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.list-item-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.list-item-button {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.list-item-button:hover {
+  color: var(--text-normal);
+  background-color: var(--background-modifier-hover);
+}
+
+.list-item-description {
+  font-size: 0.85em;
+  color: var(--text-muted);
+  margin-top: 2px;
+  margin-left: 2px;
+  width: 100%;
+}
+
+/* Font variation for toProcess items - only apply when not hovered or active */
+.nav-file-title-content.occurrence-to-process {
+  font-weight: var(--font-thin);
+  font-size: var(--font-ui-smaller);
+}
+
+/* Reset font variations during hover and active states to match normal behavior */
+.list-item:hover .nav-file-title-content.occurrence-to-process,
+.list-item.is-active .nav-file-title-content.occurrence-to-process {
+  font-weight: inherit;
+  font-size: inherit;
+}
+
+/* Group Selector */
+.group-selector-container {
+  display: flex;
+  border: var(--input-border-width) solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  overflow: hidden;
+  background: var(--background-modifier-form-field);
+  margin: var(--size-2-2) 0 var(--size-2-2) auto;
+  width: fit-content;
+}
+
+.group-selector-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--size-2-1);
+  background: transparent;
+  border-right: var(--input-border-width) solid
+    var(--background-modifier-border);
+  border-radius: 0;
+  color: var(--text-muted);
+  cursor: var(--cursor);
+  transition: all var(--anim-duration-fast) ease;
+  min-width: var(--input-height);
+}
+
+.group-selector-button:last-child {
+  border-right: none;
+}
+
+.group-selector-button:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.group-selector-button:focus-visible {
+  outline: var(--input-border-width) solid
+    var(--background-modifier-border-focus);
+  outline-offset: calc(var(--input-border-width) * -1);
+  z-index: var(--layer-popover);
+}
+
+.group-selector-button.is-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.group-selector-button.is-active:hover {
+  background: var(--interactive-accent-hover);
+}
+
+.group-selector-button svg {
+  width: var(--icon-s);
+  height: var(--icon-s);
+}
+
+/* Group Selector Container */
+.occurrence-list-selectors {
+  display: flex;
+  gap: var(--size-2-2);
+  margin-bottom: var(--size-2-2);
+  align-items: center;
+  justify-content: flex-end;
+}
+

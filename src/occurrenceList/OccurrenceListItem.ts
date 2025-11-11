@@ -1,4 +1,4 @@
-import { ListItem } from "@/components"
+import { ListItem } from "./listItem"
 import OccurrencesPlugin from "@/main"
 import { OccurrenceStore } from "@/occurrenceStore"
 import { OccurrenceObject } from "@/types"
@@ -237,3 +237,4 @@ export class OccurrenceListItem extends ListItem<OccurrenceObject> {
     return this.occurrence
   }
 }
+

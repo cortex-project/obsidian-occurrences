@@ -1,4 +1,7 @@
-import { DateFilter, FileSelector, SearchBar, TagSelector } from "@/components"
+import { DateFilter } from "./dateFilter"
+import { FileSelector } from "./fileSelector"
+import { SearchBar } from "./searchBar"
+import { TagSelector } from "./tagSelector"
 import { OccurrenceStore } from "@/occurrenceStore"
 import { App, Component, setIcon, setTooltip } from "obsidian"
 import { FilterService } from "../services/filterService"

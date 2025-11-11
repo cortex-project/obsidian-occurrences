@@ -1,4 +1,4 @@
-import { ListGroup } from "@/components"
+import { ListGroup } from "./listGroup"
 import OccurrencesPlugin from "@/main"
 import { OccurrenceObject } from "@/types"
 import { Component } from "obsidian"
@@ -355,3 +355,4 @@ export class OccurrenceList extends Component {
     }
   }
 }
+

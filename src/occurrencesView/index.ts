@@ -1,4 +1,4 @@
-import { OccurrenceList, OccurrenceListItem } from "@/components"
+import { OccurrenceList, OccurrenceListItem } from "@/occurrenceList"
 import OccurrencesPlugin from "@/main"
 import { OccurrenceStore } from "@/occurrenceStore"
 import { OccurrenceObject } from "@/types"

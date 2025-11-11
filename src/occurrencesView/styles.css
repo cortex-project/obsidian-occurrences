@@ -174,3 +174,424 @@
   opacity: var(--opacity-subtle);
   font-style: italic;
 }
+
+/* ========================================
+   FILE SELECTOR COMPONENTS
+======================================== */
+
+.file-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Custom file input container - replicates search-input-container */
+.file-input-container {
+  position: relative;
+  margin: 4px auto;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Input wrapper for positioning clear button */
+.file-input-wrapper {
+  position: relative;
+  flex-grow: 1;
+}
+
+/* Custom file input - replicates search-input */
+.file-input {
+  display: block;
+  width: 100%;
+  height: var(--input-height);
+  -webkit-app-region: no-drag;
+  background: var(--background-modifier-form-field);
+  border: var(--input-border-width) solid var(--background-modifier-border);
+  color: var(--text-normal);
+  font-family: inherit;
+  padding: var(--input-padding);
+  padding-left: 36px !important;
+  padding-right: 28px !important;
+  font-size: var(--font-ui-small);
+  border-radius: var(--input-radius);
+  outline: none;
+  unicode-bidi: plaintext;
+}
+
+/* Custom file input icon - positioned like search icon */
+.file-input-icon {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.file-input-icon svg {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+/* Custom clear button - replicates search-input-clear-button */
+.file-input-clear-button {
+  position: absolute;
+  background: transparent;
+  border-radius: 50%;
+  color: var(--search-clear-button-color);
+  cursor: var(--cursor);
+  top: 50%;
+  right: 2px;
+  transform: translateY(-50%);
+  line-height: 0;
+  height: var(--input-height);
+  width: 28px;
+  padding: 0 0;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: color var(--anim-duration-fast) ease-in-out;
+  z-index: 2;
+}
+
+/* Add X icon using CSS pseudo-element */
+.file-input-clear-button::before {
+  content: "✕";
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 1;
+}
+
+/* Clear button visibility is controlled by JavaScript */
+
+/* Target button positioned to the right of the input */
+.file-target-button {
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.file-suggestions-container {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 10000;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.file-suggestions-list {
+  padding: 0.25rem 0;
+}
+
+.file-suggestion {
+  padding: 0.5rem 0.5rem;
+  cursor: pointer;
+  margin: 0 0.5rem;
+  border-radius: 4px;
+}
+
+.file-suggestion:last-child {
+  border-bottom: none;
+}
+
+.file-suggestion:hover,
+.file-suggestion.is-selected {
+  background: var(--background-modifier-hover);
+}
+
+.file-suggestion-name {
+  color: var(--text-normal);
+  margin-bottom: 0.25rem;
+  font-size: var(--font-ui-small);
+}
+
+.file-suggestion-path {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+/* ========================================
+   TAG SELECTOR COMPONENTS
+======================================== */
+
+.occurrences-tag-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+}
+
+/* Custom tag input container - replicates search-input-container */
+.tag-input-container {
+  position: relative;
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  background: var(--background-modifier-form-field);
+  border: var(--input-border-width) solid var(--background-modifier-border);
+  border-radius: var(--input-radius);
+  cursor: text;
+  transition: border-color var(--anim-duration-fast) ease-in-out;
+}
+
+.tag-input-container:focus-within {
+  outline: 3px solid var(--background-modifier-border-focus);
+  outline-offset: -3px;
+}
+
+/* Input wrapper for positioning clear button and selected tags */
+.tag-input-wrapper {
+  position: relative;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0px 22px 0px 28px;
+  min-height: var(--input-height);
+  height: auto;
+}
+
+/* Add padding when tags wrap to multiple lines */
+.tag-input-wrapper.has-wrapped-tags {
+  padding: 4px 22px 4px 28px;
+}
+
+/* Tag pill styling - direct children of wrapper */
+.tag-pill {
+  display: flex;
+  align-items: center;
+  background-color: var(--tag-background);
+  color: var(--tag-color);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: var(--font-ui-smaller);
+  gap: 4px;
+  flex: 0 0 auto;
+  /* Don't grow or shrink, wrap naturally */
+}
+
+.tag-pill:first-of-type {
+  margin-left: 8px;
+}
+
+.tag-pill-text {
+  color: var(--tag-color);
+}
+
+.tag-pill-remove {
+  cursor: pointer;
+  color: var(--tag-color);
+  font-weight: lighter;
+  font-size: 18px;
+  margin-top: -2px;
+  line-height: 1;
+
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+/* Keyboard-selected tag highlighting */
+.tag-pill.is-keyboard-selected {
+  outline: 2px solid var(--background-modifier-border-focus);
+}
+
+/* Custom tag input - replicates search-input */
+.tag-input {
+  flex: 1 1 60px;
+  min-width: 60px;
+  max-width: 100%;
+  height: auto;
+  -webkit-app-region: no-drag;
+  background: transparent !important;
+  border: none !important;
+  color: var(--text-normal);
+  font-family: inherit;
+  padding: 0;
+  font-size: var(--font-ui-small);
+  outline: none;
+  unicode-bidi: plaintext;
+  box-shadow: none !important;
+}
+
+/* Custom tag input icon - positioned like search icon */
+.tag-input-icon {
+  position: absolute;
+  left: 8px;
+  top: 4px;
+  color: var(--text-muted);
+  z-index: 1;
+  pointer-events: none;
+  font-size: large;
+}
+
+.tag-input-icon svg {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+.tag-suggestions-container {
+  position: fixed;
+  z-index: 10000;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 300px;
+  overflow-y: auto;
+  display: none;
+  /* Dynamic positioning (top, left, width) is set via JavaScript */
+}
+
+.tag-suggestions-list {
+  padding: 0.25rem 0;
+}
+
+.tag-suggestion {
+  padding: 0.5rem 0.5rem;
+  cursor: pointer;
+  margin: 0 0.5rem;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.tag-suggestion:hover,
+.tag-suggestion.is-selected {
+  background: var(--background-modifier-hover);
+}
+
+.tag-suggestion-name {
+  flex: 1;
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+}
+
+.tag-suggestion-name strong {
+  font-weight: bold;
+  color: var(--text-accent);
+}
+
+.tag-suggestion-count {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  opacity: 0.7;
+}
+
+/* ========================================
+   DATE FILTER COMPONENTS
+======================================== */
+
+.date-filter-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0;
+}
+
+.date-filter-input-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 4px auto;
+  background: var(--background-modifier-form-field);
+  border: var(--input-border-width) solid var(--background-modifier-border);
+  border-radius: var(--input-radius);
+}
+
+/* Calendar icon at the start */
+.date-filter-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.date-filter-icon svg {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+/* Container for date inputs and controls */
+.date-input-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+/* Dropdown selector for "on" / "between" */
+.date-mode-toggle {
+  box-shadow: none;
+  padding: 0px;
+  flex-shrink: 0;
+}
+
+.date-mode-toggle:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+.date-mode-toggle:hover {
+  background: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
+/* Date input fields */
+.date-filter-input-container input[type="date"] {
+  border: none;
+  flex-shrink: 1;
+}
+
+/* Wrapper for "and" text and second date input */
+.date-to-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 1;
+}
+
+/* "and" text between date inputs */
+.date-and-text {
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Period selector dropdown */
+.date-period-select {
+  box-shadow: none;
+  padding: 0px;
+  flex-shrink: 0;
+}
+
+.date-period-select:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+.date-period-select:hover {
+  background: transparent;
+  outline: none;
+  box-shadow: none;
+}
