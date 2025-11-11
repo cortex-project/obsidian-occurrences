@@ -21,9 +21,8 @@ export class OccurrenceListItem extends ListItem<OccurrenceObject> {
     showTime: boolean = false
   ) {
     // Call parent constructor with the occurrence and display text
-    super(containerEl, occurrence, occurrence.title, file =>
-      plugin.app.workspace.openLinkText(file.file.path, "", false)
-    )
+    // Note: onClick is handled in setupFileHandlers() to support cmd+click for new tabs
+    super(containerEl, occurrence, occurrence.title)
 
     this.app = plugin.app
     this.plugin = plugin
@@ -53,8 +52,15 @@ export class OccurrenceListItem extends ListItem<OccurrenceObject> {
       // Prevent default to avoid any unwanted behavior
       event.preventDefault()
 
-      // Default behavior: open the file
-      this.app.workspace.openLinkText(this.occurrence.file.path, "", false)
+      // Check if cmd (Mac) or ctrl (Windows/Linux) is pressed for new tab
+      const openInNewTab = event.metaKey || event.ctrlKey
+
+      // Open the file (in new tab if modifier key is pressed)
+      this.app.workspace.openLinkText(
+        this.occurrence.file.path,
+        "",
+        openInNewTab
+      )
     })
 
     // Add hover preview functionality
@@ -80,6 +86,19 @@ export class OccurrenceListItem extends ListItem<OccurrenceObject> {
             this.occurrence.file.path,
             "",
             false
+          )
+        )
+    })
+    // Open file in new tab option
+    this.menu.addItem(item => {
+      item
+        .setTitle("Open File in New Tab")
+        .setIcon("arrow-up-right")
+        .onClick(() =>
+          this.plugin.app.workspace.openLinkText(
+            this.occurrence.file.path,
+            "",
+            true
           )
         )
     })
