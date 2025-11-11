@@ -10,6 +10,7 @@ export class FilterControls extends Component {
   private tagButton: HTMLElement
   private inboxButton: HTMLElement
   private dateButton: HTMLElement
+  private sortButton: HTMLElement
   private searchBar: SearchBar
   private fileSelector: FileSelector
   private tagSelector: TagSelector
@@ -99,6 +100,27 @@ export class FilterControls extends Component {
 
     this.registerDomEvent(this.inboxButton, "click", () => {
       this.toggleFilter("inbox")
+    })
+
+    // Sort button
+    this.sortButton = this.buttonsContainer.createEl("div", {
+      cls: "clickable-icon nav-action-button",
+      attr: { id: "sort", role: "button", tabindex: "0" },
+    })
+    this.updateSortButton()
+
+    this.registerDomEvent(this.sortButton, "click", () => {
+      this.filterService.toggleSortOrder()
+      this.updateSortButton()
+    })
+
+    // Add keyboard support
+    this.registerDomEvent(this.sortButton, "keydown", (e: KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault()
+        this.filterService.toggleSortOrder()
+        this.updateSortButton()
+      }
     })
   }
 
@@ -303,6 +325,30 @@ export class FilterControls extends Component {
     } else {
       this.inboxButton.removeClass("is-active")
     }
+
+    // Update sort button (always visible, shows current state)
+    this.updateSortButton()
+  }
+
+  /**
+   * Update sort button icon and tooltip based on current sort order
+   */
+  private updateSortButton(): void {
+    const filters = this.filterService.getFilters()
+    const sortOrder = filters.sortOrder
+
+    // Set icon based on current sort order
+    const icon =
+      sortOrder === "asc" ? "calendar-arrow-up" : "calendar-arrow-down"
+    setIcon(this.sortButton, icon)
+
+    // Tooltip describes what it will change TO, not current state
+    const tooltip =
+      sortOrder === "asc"
+        ? "Sort Descending (Newest First)"
+        : "Sort Ascending (Oldest First)"
+    setTooltip(this.sortButton, tooltip)
+    this.sortButton.setAttribute("aria-label", tooltip)
   }
 
   /**

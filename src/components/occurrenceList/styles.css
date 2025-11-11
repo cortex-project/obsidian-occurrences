@@ -66,3 +66,12 @@
   width: var(--icon-s);
   height: var(--icon-s);
 }
+
+/* Group Selector Container */
+.occurrence-list-selectors {
+  display: flex;
+  gap: var(--size-2-2);
+  margin-bottom: var(--size-2-2);
+  align-items: center;
+  justify-content: flex-end;
+}

@@ -11,6 +11,7 @@ export class OccurrenceList extends Component {
   private containerEl: HTMLElement
   private occurrenceListItems: Map<string, OccurrenceListItem> = new Map()
   private groupBy: GroupByOption
+  private sortOrder: "asc" | "desc" = "desc"
   private groups: Map<string, ListGroup> = new Map()
   private groupSelector: GroupSelector
   private listContainerEl: HTMLElement
@@ -26,9 +27,14 @@ export class OccurrenceList extends Component {
     this.groupBy = initialGroupBy
     this.containerEl.addClass("occurrence-list")
 
-    // Create and add the group selector at the top
+    // Create a container for the group selector
+    const selectorsContainer = this.containerEl.createEl("div", {
+      cls: "occurrence-list-selectors",
+    })
+
+    // Create and add the group selector
     this.groupSelector = new GroupSelector(
-      this.containerEl,
+      selectorsContainer,
       this.groupBy,
       (value: GroupByOption) => {
         this.onGroupByChange(value)
@@ -37,7 +43,7 @@ export class OccurrenceList extends Component {
     this.addChild(this.groupSelector)
 
     // Create the list container element (will hold the actual list items)
-    // This needs to be created AFTER the group selector so it appears below it
+    // This needs to be created AFTER the selectors so it appears below them
     this.listContainerEl = this.containerEl.createEl("div", {
       cls: "occurrence-list-items",
     })
@@ -73,6 +79,14 @@ export class OccurrenceList extends Component {
 
   private getShowTime(): boolean {
     return this.groupBy === "day"
+  }
+
+  /**
+   * Set the sort order for items and groups
+   * @param sortOrder - The sort order ("asc" or "desc")
+   */
+  public setSortOrder(sortOrder: "asc" | "desc"): void {
+    this.sortOrder = sortOrder
   }
 
   /**
@@ -179,29 +193,29 @@ export class OccurrenceList extends Component {
   }
 
   /**
-   * Insert a group in chronological order (most recent first)
+   * Insert a group in chronological order based on sortOrder
    * @param group - The group to insert
    * @param groupKey - The key of the group
    */
   private insertGroupInOrder(group: ListGroup, groupKey: string): void {
-    const groupKeys = Array.from(this.groups.keys()).sort((a, b) => {
-      // Sort in reverse chronological order (most recent first)
-      return b.localeCompare(a)
+    // Sort all group keys including the new one based on sortOrder
+    const allGroupKeys = Array.from(this.groups.keys()).sort((a, b) => {
+      return this.sortOrder === "desc" ? b.localeCompare(a) : a.localeCompare(b)
     })
 
-    const insertIndex = groupKeys.indexOf(groupKey)
+    const insertIndex = allGroupKeys.indexOf(groupKey)
     if (insertIndex === 0) {
       // Insert at the beginning
       this.listContainerEl.insertBefore(
         group.getRootEl(),
         this.listContainerEl.firstChild
       )
-    } else if (insertIndex === groupKeys.length - 1) {
+    } else if (insertIndex === allGroupKeys.length - 1) {
       // Insert at the end
       this.listContainerEl.appendChild(group.getRootEl())
     } else {
       // Insert in the middle
-      const nextGroupKey = groupKeys[insertIndex + 1]
+      const nextGroupKey = allGroupKeys[insertIndex + 1]
       const nextGroup = this.groups.get(nextGroupKey)
       if (nextGroup) {
         this.listContainerEl.insertBefore(
@@ -213,7 +227,8 @@ export class OccurrenceList extends Component {
   }
 
   /**
-   * Insert an item into a group in chronological order (most recent first)
+   * Insert an item into a group maintaining the order from search results
+   * Uses the stored sortOrder to determine insertion position
    * @param listItem - The list item to insert
    * @param group - The group to insert into
    */
@@ -225,6 +240,7 @@ export class OccurrenceList extends Component {
     const occurredAt = occurrence.properties.occurredAt.getTime()
     const existingItems = group.getListItems()
 
+    // Find the correct insertion point to maintain sorted order
     let insertIndex = existingItems.length
 
     for (let i = 0; i < existingItems.length; i++) {
@@ -235,9 +251,21 @@ export class OccurrenceList extends Component {
         .getOccurrence()
         .properties.occurredAt.getTime()
 
-      if (occurredAt > existingOccurredAt) {
-        insertIndex = i
-        break
+      // Insert based on sort direction
+      if (this.sortOrder === "desc") {
+        // Descending: newer items come first
+        // Insert before the first item that is older (has smaller timestamp)
+        if (occurredAt > existingOccurredAt) {
+          insertIndex = i
+          break
+        }
+      } else {
+        // Ascending: older items come first
+        // Insert before the first item that is newer (has larger timestamp)
+        if (occurredAt < existingOccurredAt) {
+          insertIndex = i
+          break
+        }
       }
     }
 
@@ -257,12 +285,13 @@ export class OccurrenceList extends Component {
    */
   private getGroupKey(date: Date): string {
     switch (this.groupBy) {
-      case "day":
+      case "day": {
         // Use local date methods instead of toISOString() to respect user's timezone
         const year = date.getFullYear()
         const month = String(date.getMonth() + 1).padStart(2, "0")
         const day = String(date.getDate()).padStart(2, "0")
         return `${year}-${month}-${day}` // YYYY-MM-DD
+      }
       case "month":
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
           2,
@@ -282,7 +311,7 @@ export class OccurrenceList extends Component {
    */
   private getGroupTitle(date: Date): string {
     switch (this.groupBy) {
-      case "day":
+      case "day": {
         const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
         const monthNames = [
           "Jan",
@@ -301,7 +330,8 @@ export class OccurrenceList extends Component {
         return `${dayNames[date.getDay()]}, ${
           monthNames[date.getMonth()]
         } ${date.getDate()} ${date.getFullYear()}`
-      case "month":
+      }
+      case "month": {
         const fullMonthNames = [
           "January",
           "February",
@@ -317,6 +347,7 @@ export class OccurrenceList extends Component {
           "December",
         ]
         return `${fullMonthNames[date.getMonth()]} ${date.getFullYear()}`
+      }
       case "year":
         return date.getFullYear().toString()
       default:

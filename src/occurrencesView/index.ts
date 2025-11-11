@@ -128,6 +128,10 @@ export class OccurrencesView extends ItemView {
     // Build search options from current filters
     const searchOptions = this.filterService.buildSearchOptions()
 
+    // Set sort order on occurrence list before adding items
+    const filters = this.filterService.getFilters()
+    this.occurrenceList.setSortOrder(filters.sortOrder)
+
     // Execute search
     const searchResult = this.searchService.search(searchOptions)
 
@@ -182,6 +186,10 @@ export class OccurrencesView extends ItemView {
 
     // Build search options from current filters
     const searchOptions = this.filterService.buildSearchOptions()
+
+    // Set sort order on occurrence list before adding items
+    const filters = this.filterService.getFilters()
+    this.occurrenceList.setSortOrder(filters.sortOrder)
 
     // Execute search
     const searchResult = this.searchService.search(searchOptions)
